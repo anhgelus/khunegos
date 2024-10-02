@@ -39,12 +39,15 @@ public class Task {
         if (role == Role.NONE) throw new IllegalStateException("Cannot finish a task with none role");
         prisoner.removeTask(this);
         Text message;
+        float healthAttribute = 0;
         switch (role) {
             case HUNTER:
                 if (win) {
                     message = Text.of("You killed your prey! You gain one heart!");
+                    healthAttribute = 2.0f;
                 } else {
                     message = Text.of("You didn't kill your prey! You lose two hearts!");
+                    healthAttribute = -4.0f;
                 }
                 break;
             case PREY:
@@ -57,12 +60,15 @@ public class Task {
                 if (win) {
                     message = Text.of("You survived! Your hunter was "+name.getString());
                 } else {
-                    message = Text.of("You were killed by your hunter! They were "+name.getString());
+                    message = Text.of("You were killed by your hunter and you lose five hearts! They were "+
+                            name.getString());
+                    healthAttribute = -10.0f;
                 }
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + role);
         }
         prisoner.player().sendMessage(message);
+        prisoner.modifyHealth(healthAttribute);
     }
 }

@@ -1,8 +1,12 @@
 package world.anhgelus.khunegos.player;
 
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.world.GameMode;
+import world.anhgelus.khunegos.Khunegos;
 
 import java.util.*;
 
@@ -52,6 +56,35 @@ public class Prisoner {
             });
         }
         player = newPlayer;
+    }
+
+    public void modifyHealth(float health) {
+        if (health == 0) return;
+        final var instance = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        if (instance == null) return;
+
+        final var previous = instance.getModifier(Khunegos.HEALTH_MODIFIER_ID);
+        if (previous != null) {
+            health += (float) previous.value();
+        }
+        instance.removeModifier(Khunegos.HEALTH_MODIFIER_ID);
+
+        if (health <= -20) {
+            player.changeGameMode(GameMode.SPECTATOR);
+            final var server = player.getServer();
+            if (server == null) throw new IllegalStateException("Server is null");
+            server.sendMessage(Text.of(name + " lost all their hearts!"));
+            return;
+        } else if (health >= 10) {
+            //TODO: starts Katarros if total health >= 15
+        }
+
+        final var playerHealthModifier = new EntityAttributeModifier(
+                Khunegos.HEALTH_MODIFIER_ID,
+                health,
+                EntityAttributeModifier.Operation.ADD_VALUE
+        );
+        instance.addPersistentModifier(playerHealthModifier);
     }
 
     private void updatePlayer(ServerPlayerEntity player) {
