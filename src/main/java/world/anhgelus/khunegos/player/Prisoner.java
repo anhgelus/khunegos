@@ -1,6 +1,7 @@
 package world.anhgelus.khunegos.player;
 
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.*;
@@ -39,6 +40,17 @@ public class Prisoner {
     }
 
     public void playerDies(ServerPlayerEntity newPlayer, DamageSource source) {
+        if (source.getAttacker() instanceof final ServerPlayerEntity attacker) {
+            tasks.forEach(task -> {
+                if (task.role != Task.Role.PREY || task.linked != attacker.getUuid()) return;
+                task.win = false;
+                from(attacker).tasks.forEach(t -> {
+                    if (t.role == Task.Role.HUNTER && t.linked == newPlayer.getUuid()) {
+                        t.win = true;
+                    }
+                });
+            });
+        }
         player = newPlayer;
     }
 
