@@ -2,7 +2,6 @@ package world.anhgelus.khunegos.player;
 
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -11,13 +10,8 @@ public class Prisoner {
 
     public final UUID uuid;
     public final String name;
+    private final Set<Task> tasks = new HashSet<>();
     private ServerPlayerEntity player;
-    private @Nullable Role role = null;
-
-    public enum Role {
-        PREY,
-        HUNTER
-    }
 
     private Prisoner(ServerPlayerEntity player) {
         this.uuid = player.getUuid();
@@ -31,12 +25,17 @@ public class Prisoner {
         return player;
     }
 
-    public Role role() {
-        return role;
+    public Set<Task> tasks() {
+        return tasks;
     }
 
-    public void updateRole(Role role) {
-        this.role = role;
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.sendTask(player);
+    }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
     }
 
     public void playerDies(ServerPlayerEntity newPlayer, DamageSource source) {
