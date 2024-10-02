@@ -15,6 +15,7 @@ import java.util.Map;
 
 public class Khunegos implements ModInitializer {
     public static final Identifier HEALTH_MODIFIER_ID = Identifier.of("khunegos_health_modifier");
+    private static boolean karratos = false;
 
     private final Map<ServerPlayerEntity, DamageSource> damageSources = new HashMap<>();
 
@@ -30,5 +31,13 @@ public class Khunegos implements ModInitializer {
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             Prisoner.from(oldPlayer).playerDies(newPlayer, damageSources.get(oldPlayer));
         });
+    }
+
+    public static boolean karratos() {
+        return karratos;
+    }
+
+    public static void enableKarratos() {
+        karratos = false;
     }
 }

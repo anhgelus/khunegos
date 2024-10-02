@@ -44,7 +44,7 @@ public class Prisoner {
     }
 
     public void playerDies(ServerPlayerEntity newPlayer, DamageSource source) {
-        if (source.getAttacker() instanceof final ServerPlayerEntity attacker) {
+        if (!Khunegos.karratos() && source.getAttacker() instanceof final ServerPlayerEntity attacker) {
             tasks.forEach(task -> {
                 if (task.role != Task.Role.PREY || task.linked != attacker.getUuid()) return;
                 task.win = false;
@@ -54,6 +54,8 @@ public class Prisoner {
                     }
                 });
             });
+        } else if (Khunegos.karratos()) {
+            modifyHealth(-2);
         }
         player = newPlayer;
     }
@@ -76,7 +78,7 @@ public class Prisoner {
             server.sendMessage(Text.of(name + " lost all their hearts!"));
             return;
         } else if (health >= 10) {
-            //TODO: starts Katarros if total health >= 15
+            Khunegos.enableKarratos();
         }
 
         final var playerHealthModifier = new EntityAttributeModifier(
