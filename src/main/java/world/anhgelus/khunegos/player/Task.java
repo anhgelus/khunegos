@@ -19,13 +19,9 @@ public class Task {
     public enum Role {
         PREY,
         HUNTER,
-        NONE
     }
 
-    public static Task NONE = new Task(Role.NONE, null);
-
     public void sendTask(ServerPlayerEntity player) {
-        if (role == Role.NONE) return;
         final var sb = new StringBuilder();
         if (role == Role.HUNTER) {
             sb.append("You are an hunter, find your prey and kill them!");
@@ -36,7 +32,6 @@ public class Task {
     }
 
     public void finishTask(Prisoner prisoner) {
-        if (role == Role.NONE) throw new IllegalStateException("Cannot finish a task with none role");
         prisoner.removeTask(this);
         Text message;
         float healthAttribute = 0;
