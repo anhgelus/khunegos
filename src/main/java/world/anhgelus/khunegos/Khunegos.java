@@ -7,7 +7,9 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -42,15 +44,35 @@ public class Khunegos implements ModInitializer {
             game.stop();
             return Command.SINGLE_SUCCESS;
         }));
-        command.then(literal("reveal").executes(context -> {
+        command.then(literal("reveal").then(CommandManager.argument("target", EntityArgumentType.player())).executes(context -> {
             final var prisoner = getPrisonerFromContext(context);
-            if (prisoner == null) return 1;
-            // reveal player with given target
+            if (prisoner == null) return 2;
+            final var target = context.getArgument("target", ServerPlayerEntity.class);
+            final var source = context.getSource();
+            if (target == null) {
+                source.sendMessage(Text.of("Target is null (not online?)"));
+                return 3;
+            }
+            final var task = prisoner.getHunterTasks()
+                    .stream()
+                    .filter(t -> t.linked == target.getUuid() && !t.isRunning())
+                    .findFirst();
+            if (task.isEmpty()) {
+                source.sendMessage(Text.of("Impossible to find task"));
+                return 4;
+            }
+            assert target.getDisplayName() != null;
+            source.getServer().getPlayerManager().broadcast(
+                    Text.empty().append(prisoner.player().getDisplayName())
+                            .append(Text.of(" is tracking "))
+                            .append(Text.of(target.getDisplayName())),
+                    false);
+            prisoner.revealTask(task.get());
             return Command.SINGLE_SUCCESS;
         }));
         command.then(literal("tasks").executes(context -> {
             final var prisoner = getPrisonerFromContext(context);
-            if (prisoner == null) return 1;
+            if (prisoner == null) return 2;
 
             final var source = context.getSource();
             final var server = source.getServer();

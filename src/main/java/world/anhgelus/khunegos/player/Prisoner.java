@@ -17,6 +17,7 @@ public class Prisoner {
     public final String name;
     private final Set<Task> hunterTasks = new HashSet<>();
     private final Set<Task> preyTasks = new HashSet<>();
+    private final Set<Task> revealedTasks = new HashSet<>();
     private ServerPlayerEntity player;
 
     private Prisoner(ServerPlayerEntity player) {
@@ -45,24 +46,41 @@ public class Prisoner {
         task.sendTask(player);
     }
 
+    public void revealTask(Task task) {
+        if (task.role != Task.Role.HUNTER) throw new IllegalArgumentException("Impossible to reveal a prey task");
+        revealedTasks.add(task);
+    }
+
     public void removeTask(Task task) {
         if (task.role == Task.Role.PREY) preyTasks.remove(task);
-        else hunterTasks.remove(task);
+        else {
+            hunterTasks.remove(task);
+            revealedTasks.remove(task);
+        }
     }
 
     public void playerDies(ServerPlayerEntity newPlayer, DamageSource source) {
+        player = newPlayer;
         if (!Khunegos.isKarratos() && source.getAttacker() instanceof final ServerPlayerEntity attacker) {
-            hunterTasks.forEach(task -> {
-                if (task.role != Task.Role.PREY || task.linked != attacker.getUuid()) return;
-                task.win = false;
-                from(attacker).hunterTasks.forEach(t -> {
-                    if (t.linked == newPlayer.getUuid()) t.win = true;
-                });
-            });
+            // modify health after reveal
+            if (!revealedTasks.isEmpty()) modifyHealth(-2);
+
+            final var optTask = preyTasks.stream().filter(t -> t.linked == attacker.getUuid()).findFirst();
+            if (optTask.isEmpty()) return;
+            // modify prey task
+            final var task = optTask.get();
+            task.win = false;
+            // modify hunter task
+            final var optHTask = from(attacker).hunterTasks
+                    .stream()
+                    .filter(t -> t.linked == player.getUuid())
+                    .findFirst();
+            if (optHTask.isEmpty()) throw new IllegalStateException("Cannot find hunter task after kill");
+            final var hTask = optHTask.get();
+            hTask.win = true;
         } else if (Khunegos.isKarratos()) {
             modifyHealth(-2);
         }
-        player = newPlayer;
     }
 
     public void modifyHealth(float health) {
