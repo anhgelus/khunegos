@@ -1,15 +1,18 @@
 package world.anhgelus.khunegos;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.player.Prisoner;
@@ -40,17 +43,27 @@ public class Khunegos implements ModInitializer {
             return Command.SINGLE_SUCCESS;
         }));
         command.then(literal("reveal").executes(context -> {
-            final var source = context.getSource();
-            final var player = source.getPlayer();
-            if (player == null) {
-                source.sendError(Text.of("You must be a player to execute this command!"));
-                return 1;
-            }
-            final var prisoner = Prisoner.from(player);
-            // reveal player with given id
+            final var prisoner = getPrisonerFromContext(context);
+            if (prisoner == null) return 1;
+            // reveal player with given target
             return Command.SINGLE_SUCCESS;
         }));
-        // command to get tasks
+        command.then(literal("tasks").executes(context -> {
+            final var prisoner = getPrisonerFromContext(context);
+            if (prisoner == null) return 1;
+
+            final var source = context.getSource();
+            final var server = source.getServer();
+            final var txt = Text.empty().append(Text.of("Your tasks:\n"));
+            prisoner.getHunterTasks().forEach(task -> {
+                if (!task.isRunning()) return;
+                final var player = server.getPlayerManager().getPlayer(task.linked);
+                if (player == null) throw new IllegalStateException("Player is null (not online?)");
+                txt.append(Text.of("\n- kill ")).append(player.getDisplayName());
+            });
+            source.sendMessage(txt);
+            return Command.SINGLE_SUCCESS;
+        }));
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             game = new Game(server);
@@ -73,5 +86,15 @@ public class Khunegos implements ModInitializer {
 
     public static void enableKarratos() {
         karratos = false;
+    }
+
+    private @Nullable Prisoner getPrisonerFromContext(CommandContext<ServerCommandSource> context) {
+        final var source = context.getSource();
+        final var player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.of("You must be a player to execute this command!"));
+            return null;
+        }
+        return Prisoner.from(player);
     }
 }
