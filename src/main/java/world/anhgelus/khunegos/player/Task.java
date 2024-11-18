@@ -26,7 +26,7 @@ public class Task {
 
     public void sendTask(ServerPlayerEntity player) {
         if (role == Role.HUNTER)
-            player.sendMessage(Text.of("You are an hunter, find your prey and kill them! You can find their coordinates in your hunt's book."));
+            player.sendMessage(Text.of("You are anhunter, find your prey and kill them! You can find their coordinates in your hunt's book."));
         else
             player.sendMessage(Text.of("You are a prey, survive!"));
     }
