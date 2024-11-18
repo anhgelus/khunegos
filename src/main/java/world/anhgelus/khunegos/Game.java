@@ -47,7 +47,7 @@ public class Game {
     }
 
     public void assignTasks() {
-        final var players = server.getPlayerManager().getPlayerList();
+        final var players = new ArrayList<>(server.getPlayerManager().getPlayerList());
         final var rand = new Random();
         while (players.size() > 1) {
             // hunter
