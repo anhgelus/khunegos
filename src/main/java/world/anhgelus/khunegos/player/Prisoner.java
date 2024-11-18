@@ -30,7 +30,7 @@ public class Prisoner {
         return player;
     }
 
-    public Set<Task> tasks() {
+    public Set<Task> getTasks() {
         return tasks;
     }
 
@@ -44,7 +44,7 @@ public class Prisoner {
     }
 
     public void playerDies(ServerPlayerEntity newPlayer, DamageSource source) {
-        if (!Khunegos.karratos() && source.getAttacker() instanceof final ServerPlayerEntity attacker) {
+        if (!Khunegos.isKarratos() && source.getAttacker() instanceof final ServerPlayerEntity attacker) {
             tasks.forEach(task -> {
                 if (task.role != Task.Role.PREY || task.linked != attacker.getUuid()) return;
                 task.win = false;
@@ -54,7 +54,7 @@ public class Prisoner {
                     }
                 });
             });
-        } else if (Khunegos.karratos()) {
+        } else if (Khunegos.isKarratos()) {
             modifyHealth(-2);
         }
         player = newPlayer;
@@ -101,7 +101,7 @@ public class Prisoner {
         return found;
     }
 
-    public static Collection<Prisoner> prisoners() {
+    public static Collection<Prisoner> getPrisoners() {
         return prisoners.values();
     }
 }
