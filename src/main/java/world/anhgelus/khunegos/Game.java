@@ -28,8 +28,14 @@ public class Game {
                 final var hunterTasks = new HashSet<Task>();
                 final var preyTasks = new HashSet<Task>();
                 Prisoner.getPrisoners().forEach(prisoner -> {
-                    hunterTasks.addAll(prisoner.getHunterTasks());
-                    preyTasks.addAll(prisoner.getPreyTasks());
+                    // hunter tasks
+                    final var hs = new HashSet<>(prisoner.getHunterTasks());
+                    hs.removeIf(t -> !t.isRunning());
+                    hunterTasks.addAll(hs);
+                    // prey tasks
+                    final var ps = new HashSet<>(prisoner.getPreyTasks());
+                    ps.removeIf(t -> !t.isRunning());
+                    preyTasks.addAll(ps);
                 });
                 hunterTasks.forEach(Task::finishTask);
                 preyTasks.forEach(Task::finishTask);

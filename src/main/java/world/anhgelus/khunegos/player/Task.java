@@ -25,16 +25,14 @@ public class Task {
     }
 
     public void sendTask(ServerPlayerEntity player) {
-        final var sb = new StringBuilder();
-        if (role == Role.HUNTER) {
-            sb.append("You are an hunter, find your prey and kill them!");
-        } else {
-            sb.append("You are a prey, survive!");
-        }
-        player.sendMessage(Text.of(sb.toString()));
+        if (role == Role.HUNTER)
+            player.sendMessage(Text.of("You are an hunter, find your prey and kill them!"));
+        else
+            player.sendMessage(Text.of("You are a prey, survive!"));
     }
 
     public void finishTask() {
+        if (!running) throw new IllegalStateException("Cannot finish task an already finished task");
         Text message;
         float healthAttribute = 0;
         if (role == Role.HUNTER) {
@@ -48,8 +46,11 @@ public class Task {
                 healthAttribute = -4.0f;
             }
         } else if (role == Role.PREY) {
-            // if the player is not linked
-            if (prisoner.uuid == linked) running = false;
+            // if the player is not linked, task is not important
+            if (prisoner.uuid == linked) {
+                running = false;
+                return;
+            }
 
             final var server = prisoner.player().getServer();
             if (server == null) throw new IllegalStateException("Server is null");
@@ -70,6 +71,7 @@ public class Task {
                 healthAttribute = -10.0f;
             }
             running = false;
+            prisoner.removeTask(this);
         } else {
             throw new IllegalStateException("Unexpected value: " + role);
         }
