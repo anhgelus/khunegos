@@ -15,7 +15,8 @@ public class Prisoner {
 
     public final UUID uuid;
     public final String name;
-    private final Set<Task> tasks = new HashSet<>();
+    private final Set<Task> hunterTasks = new HashSet<>();
+    private final Set<Task> preyTasks = new HashSet<>();
     private ServerPlayerEntity player;
 
     private Prisoner(ServerPlayerEntity player) {
@@ -30,28 +31,32 @@ public class Prisoner {
         return player;
     }
 
-    public Set<Task> getTasks() {
-        return tasks;
+    public Set<Task> getHunterTasks() {
+        return hunterTasks;
+    }
+
+    public Set<Task> getPreyTasks() {
+        return preyTasks;
     }
 
     public void addTask(Task task) {
-        tasks.add(task);
+        if (task.role == Task.Role.PREY) preyTasks.add(task);
+        else hunterTasks.add(task);
         task.sendTask(player);
     }
 
     public void removeTask(Task task) {
-        tasks.remove(task);
+        if (task.role == Task.Role.PREY) preyTasks.remove(task);
+        else hunterTasks.remove(task);
     }
 
     public void playerDies(ServerPlayerEntity newPlayer, DamageSource source) {
         if (!Khunegos.isKarratos() && source.getAttacker() instanceof final ServerPlayerEntity attacker) {
-            tasks.forEach(task -> {
+            hunterTasks.forEach(task -> {
                 if (task.role != Task.Role.PREY || task.linked != attacker.getUuid()) return;
                 task.win = false;
-                from(attacker).tasks.forEach(t -> {
-                    if (t.role == Task.Role.HUNTER && t.linked == newPlayer.getUuid()) {
-                        t.win = true;
-                    }
+                from(attacker).hunterTasks.forEach(t -> {
+                    if (t.linked == newPlayer.getUuid()) t.win = true;
                 });
             });
         } else if (Khunegos.isKarratos()) {

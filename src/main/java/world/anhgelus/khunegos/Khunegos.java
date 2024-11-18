@@ -43,7 +43,7 @@ public class Khunegos implements ModInitializer {
             final var source = context.getSource();
             final var player = source.getPlayer();
             if (player == null) {
-                source.sendError(Text.of("You must be a player to execute this command"));
+                source.sendError(Text.of("You must be a player to execute this command!"));
                 return 1;
             }
             final var prisoner = Prisoner.from(player);

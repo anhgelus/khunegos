@@ -4,10 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import world.anhgelus.khunegos.player.Prisoner;
 import world.anhgelus.khunegos.player.Task;
 
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import java.util.*;
 
 public class Game {
     private Timer timer = new Timer();
@@ -27,17 +24,26 @@ public class Game {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                assignTask();
+                // finish previous tasks
+                final var hunterTasks = new HashSet<Task>();
+                final var preyTasks = new HashSet<Task>();
+                Prisoner.getPrisoners().forEach(prisoner -> {
+                    hunterTasks.addAll(prisoner.getHunterTasks());
+                    preyTasks.addAll(prisoner.getPreyTasks());
+                });
+                hunterTasks.forEach(Task::finishTask);
+                preyTasks.forEach(Task::finishTask);
+                // assign new tasks
+                assignTasks();
             }
         }, 60*60*20L, 20*60*20L);
         // reset day, weather, borders and tp all player to 0 0
     }
 
-    public void assignTask() {
+    public void assignTasks() {
         final var players = server.getPlayerManager().getPlayerList();
-        final var s = players.size();
         final var rand = new Random();
-        while (!players.isEmpty() && (s%2 == 1 && players.size() > 1)) {
+        while (players.size() > 1) {
             // hunter
             var n = rand.nextInt(players.size());
             final var hunter = Prisoner.from(players.get(n));
@@ -47,12 +53,12 @@ public class Game {
             final var prey = Prisoner.from(players.get(n));
             players.remove(n);
             // tasks
-            hunter.addTask(new Task(Task.Role.HUNTER, prey.uuid));
-            prey.addTask(new Task(Task.Role.PREY, hunter.uuid));
+            hunter.addTask(new Task(Task.Role.HUNTER, hunter, prey.uuid));
+            prey.addTask(new Task(Task.Role.PREY, prey, hunter.uuid));
         }
-        if (s%2 == 1) {
+        if (players.size()%2 == 1) {
             final var prisoner = Prisoner.from(players.getFirst());
-            prisoner.addTask(new Task(Task.Role.PREY, prisoner.uuid));
+            prisoner.addTask(new Task(Task.Role.PREY, prisoner, prisoner.uuid));
         }
     }
 
