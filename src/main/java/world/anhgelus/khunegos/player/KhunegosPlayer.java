@@ -3,6 +3,7 @@ package world.anhgelus.khunegos.player;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import world.anhgelus.khunegos.Khunegos;
 
 public class KhunegosPlayer {
     public enum Role {
@@ -45,6 +46,11 @@ public class KhunegosPlayer {
     public void taskFinished(boolean success) {
         if (!success) {
             healthModifier -= 2;
+// it will be in update attribute
+//            healthModifier = Math.max(
+//                    Math.min(healthModifier - 2, Khunegos.KHUNEGOS_MAX_RELATIVE_HEALTH),
+//                    Khunegos.KHUNEGOS_MIN_RELATIVE_HEALTH
+//            );
             //TODO: update attribute
         }
         this.task = null;
