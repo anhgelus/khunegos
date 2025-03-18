@@ -4,6 +4,7 @@
   "package": "world.anhgelus.khunegos.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "WorldTimerAccess"
   ],
   "injectors": {
     "defaultRequire": 1
