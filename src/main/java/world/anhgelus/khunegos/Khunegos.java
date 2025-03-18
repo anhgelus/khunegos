@@ -10,8 +10,8 @@ public class Khunegos implements ModInitializer {
 
     public static final float KHUNEGOS_DURATION = 1f; // in day(s)
     public static final float KHUNEGOS_BASE_DELAY = 1f; // in day(s)
-    public static final int KHUNEGOS_MAX_RELATIVE_HEALTH = 5; // in heart(s)
-    public static final int KHUNEGOS_MIN_RELATIVE_HEALTH = -5; // in heart(s)
+    public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
+    public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
 
     @Override
     public void onInitialize() {
