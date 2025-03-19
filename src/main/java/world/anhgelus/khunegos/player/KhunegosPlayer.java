@@ -21,7 +21,7 @@ public class KhunegosPlayer {
         PREY,
         NONE
     }
-    public static Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID + "_health_modifier");
+    public static Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
 
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
