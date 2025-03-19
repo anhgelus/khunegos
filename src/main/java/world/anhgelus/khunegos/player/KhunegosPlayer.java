@@ -1,6 +1,5 @@
 package world.anhgelus.khunegos.player;
 
-import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -9,7 +8,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -45,7 +43,7 @@ public class KhunegosPlayer {
         this.healthModifier = healthModifier;
     }
 
-    public void onBeforeDeath(boolean killedByPlayer) {
+    public void onDeath(boolean killedByPlayer) {
         if (!killedByPlayer && role != Role.PREY) return;
         // save uuid in nbt
         final var nbt = new NbtCompound();
