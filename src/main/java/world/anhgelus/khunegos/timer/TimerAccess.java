@@ -44,14 +44,14 @@ public interface TimerAccess {
      *
      * @param task Task to run
      */
-    void dds_runTask(TimerAccess.TickTask task);
+    void timer_runTask(TimerAccess.TickTask task);
 
-    void dds_cancel();
+    void timer_cancel();
 
     /**
      * @return All non-cancelled tasks
      */
-    List<TickTask> dds_getTasks();
+    List<TickTask> timer_getTasks();
 
     /**
      * Get the timer linked to the overworld

@@ -23,17 +23,17 @@ public class WorldTimerAccess implements TimerAccess {
     }
 
     @Override
-    public void dds_runTask(TimerAccess.TickTask task) {
+    public void timer_runTask(TimerAccess.TickTask task) {
         tasks.add(task);
     }
 
     @Override
-    public void dds_cancel() {
+    public void timer_cancel() {
         tasks.stream().filter(TickTask::isRunning).forEach(TickTask::cancel);
     }
 
     @Override
-    public List<TickTask> dds_getTasks() {
+    public List<TickTask> timer_getTasks() {
         return tasks.stream().filter(TickTask::isRunning).toList();
     }
 }
