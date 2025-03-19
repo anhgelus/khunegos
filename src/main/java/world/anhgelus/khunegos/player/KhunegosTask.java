@@ -23,4 +23,8 @@ public class KhunegosTask {
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
     }
+
+    public void onPreyDisconnection() {
+        //
+    }
 }

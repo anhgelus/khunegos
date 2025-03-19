@@ -1,9 +1,17 @@
 package world.anhgelus.khunegos.player;
 
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +43,19 @@ public class KhunegosPlayer {
     public KhunegosPlayer(ServerPlayerEntity player, float healthModifier) {
         this.player = player;
         this.healthModifier = healthModifier;
+    }
+
+    public void onBeforeDeath(boolean killedByPlayer) {
+        if (!killedByPlayer && role != Role.PREY) return;
+        // save uuid in nbt
+        final var nbt = new NbtCompound();
+        nbt.putUuid("player", player.getUuid());
+        // create itemstack
+        final var is = new ItemStack(Items.NETHER_STAR);
+        is.set(DataComponentTypes.CUSTOM_NAME, player.getName());
+        is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+        // drop
+        player.dropItem(is, true, false);
     }
 
     public void onRespawn(ServerPlayerEntity newPlayer) {
@@ -73,6 +94,15 @@ public class KhunegosPlayer {
 
     public int getMaxHealth() {
         return (int) Math.floor((20 + healthModifier) / 2);
+    }
+
+    public BlockPos getCoords() {
+        return player.getBlockPos();
+    }
+
+    public String getCoordsString() {
+        final var coords = getCoords();
+        return "x=" + coords.getX() + " y=" + coords.getY() + " z=" + coords.getZ();
     }
 
     private void updateHealth() {
