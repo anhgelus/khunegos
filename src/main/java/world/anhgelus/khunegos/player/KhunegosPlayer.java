@@ -1,6 +1,9 @@
 package world.anhgelus.khunegos.player;
 
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +15,7 @@ public class KhunegosPlayer {
         PREY,
         NONE
     }
+    public static Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID + "_health_modifier");
 
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
@@ -35,7 +39,7 @@ public class KhunegosPlayer {
 
     public void onRespawn(ServerPlayerEntity newPlayer) {
         this.player = newPlayer;
-        //TODO: update attribute
+        updateHealth();
     }
 
     public void assignTask(@NotNull KhunegosTask task) {
@@ -47,9 +51,7 @@ public class KhunegosPlayer {
     public void taskFinished(boolean success) {
         if (!success) {
             healthModifier -= 2;
-            // it will be in update attribute
-            // healthModifier = MathHelper.clamp(healthModifier, Khunegos.MIN_RELATIVE_HEALTH, Khunegos.MAX_RELATIVE_HEALTH);
-            //TODO: update attribute
+            updateHealth();
         }
         this.task = null;
         role = Role.NONE;
@@ -71,5 +73,14 @@ public class KhunegosPlayer {
 
     public int getMaxHealth() {
         return (int) Math.floor((20 + healthModifier) / 2);
+    }
+
+    private void updateHealth() {
+        healthModifier = MathHelper.clamp(healthModifier, Khunegos.MIN_RELATIVE_HEALTH, Khunegos.MAX_RELATIVE_HEALTH);
+        final var attr = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        if (attr == null) throw new IllegalStateException("No health attribute assigned to KhunegosPlayer");
+        if (attr.hasModifier(HEALTH_MODIFIER)) attr.removeModifier(HEALTH_MODIFIER);
+        final var modifier = new EntityAttributeModifier(HEALTH_MODIFIER, healthModifier, EntityAttributeModifier.Operation.ADD_VALUE);
+        attr.addTemporaryModifier(modifier);
     }
 }
