@@ -3,18 +3,19 @@ package world.anhgelus.khunegos;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.player.KhunegosPlayer;
+import world.anhgelus.khunegos.player.KhunegosTask;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Khunegos implements ModInitializer {
     public static final String MOD_ID = "khunegos";
@@ -26,14 +27,28 @@ public class Khunegos implements ModInitializer {
     public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
 
     private static final Map<UUID, KhunegosPlayer> players = new HashMap<>();
+    private final List<KhunegosTask.Incoming> khunegosTaskList = new ArrayList<>();
 
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Khunegos");
+
+        final var next = new AtomicInteger(-1);
+        final var started = new AtomicBoolean(false);
+
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             final var khunegosPlayer = getKhunegosPlayer(handler.player);
             khunegosPlayer.onRespawn(handler.player);
-            //TODO: handle launch of Khunegos
+            // setup khunegos
+            if (next.get() == -1) next.set(4 + MathHelper.nextInt(server.getOverworld().getRandom(), -1, 1));
+            if (started.get()){
+                //TODO: handle multiple khunegos
+                return;
+            }
+            // create first khunegos
+            if (server.getPlayerManager().getPlayerList().size() < next.get()) return;
+            khunegosTaskList.add(new KhunegosTask.Incoming(server));
+            started.set(true);
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -58,12 +73,12 @@ public class Khunegos implements ModInitializer {
         });
     }
 
-    private static KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
+    public static KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
         return players.computeIfAbsent(player.getUuid(), k -> new KhunegosPlayer(player));
     }
 
     @Nullable
-    private static KhunegosPlayer getKhunegosPlayer(UUID uuid) {
+    public static KhunegosPlayer getKhunegosPlayer(UUID uuid) {
         return players.get(uuid);
     }
 }
