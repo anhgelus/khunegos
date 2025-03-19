@@ -1,6 +1,12 @@
 package world.anhgelus.khunegos.player;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 import world.anhgelus.khunegos.Khunegos;
@@ -138,8 +144,11 @@ public class KhunegosTask {
             Manager.removeTask(this);
         }, duration*1000L);
         timer.timer_runTask(task);
-        //TODO: broadcast starts
-        //TODO: give books
+
+        server.getPlayerManager().broadcast(Text.of("A new Khunegos starts! Check your inventory."), false);
+
+        hunter.giveBook();
+        prey.giveBook();
     }
 
     public Incoming onPreyKilled() {

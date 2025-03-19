@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -91,6 +92,20 @@ public class KhunegosPlayer {
         }
         this.task = null;
         role = Role.NONE;
+    }
+
+    public void giveBook() {
+        // prevents giving same book
+        if (player.getInventory().contains(is -> {
+           final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
+           return nbt != null && nbt.contains("khunegos") && nbt.copyNbt().getBoolean("khunegos");
+        })) return;
+        final var is = new ItemStack(Items.BOOK);
+        final var nbt = new NbtCompound();
+        nbt.putBoolean("khunegos", true);
+        is.set(DataComponentTypes.CUSTOM_NAME, Text.of("Khunegos"));
+        is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+        player.giveOrDropStack(is);
     }
 
     /**
