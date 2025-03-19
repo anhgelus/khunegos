@@ -7,6 +7,8 @@ import world.anhgelus.khunegos.Khunegos;
 import world.anhgelus.khunegos.timer.TickTask;
 import world.anhgelus.khunegos.timer.TimerAccess;
 
+import java.util.ArrayList;
+
 public class KhunegosTask {
     public static class Incoming {
         public final TickTask delayTask;
@@ -14,8 +16,37 @@ public class KhunegosTask {
 
         public Incoming(Random rand, MinecraftServer server) {
             this.delayTask = new TickTask(() -> {
-                task = new KhunegosTask(null, null);
-            }, MathHelper.nextInt(rand, 0, MathHelper.floor(5* Khunegos.KHUNEGOS_DURATION)));
+                final var players = new ArrayList<>(server.getPlayerManager().getPlayerList());;
+                // get hunter
+                var hunter = players.get(MathHelper.nextInt(rand, players.size(), players.size() - 1));
+                players.remove(hunter);
+                var khunegosHunter = KhunegosPlayer.Manager.getKhunegosPlayer(hunter);
+                while (players.size() >= 2 && !validPlayer(khunegosHunter, true)) {
+                    hunter = players.get(MathHelper.nextInt(rand, players.size(), players.size() - 1));
+                    players.remove(hunter);
+                    khunegosHunter = KhunegosPlayer.Manager.getKhunegosPlayer(hunter);
+                }
+                // verify validity
+                if (!validPlayer(khunegosHunter, true) || players.size() < 2) {
+                    Khunegos.LOGGER.error("Cannot find a valid player for being a hunter");
+                    return;
+                }
+                // get prey
+                var prey = players.get(MathHelper.nextInt(rand, players.size(), players.size() - 1));
+                players.remove(prey);
+                var khunegosPrey = KhunegosPlayer.Manager.getKhunegosPlayer(prey);
+                while (players.size() >= 2 && !validPlayer(khunegosPrey, false)) {
+                    prey = players.get(MathHelper.nextInt(rand, players.size(), players.size() - 1));
+                    players.remove(prey);
+                    khunegosPrey = KhunegosPlayer.Manager.getKhunegosPlayer(prey);
+                }
+                // verify validity
+                if (!validPlayer(khunegosPrey, false) || players.size() < 2) {
+                    Khunegos.LOGGER.error("Cannot find a valid player for being a prey");
+                    return;
+                }
+                task = new KhunegosTask(khunegosHunter, khunegosPrey);
+            }, MathHelper.nextInt(rand, 0, MathHelper.floor(5* Khunegos.KHUNEGOS_DURATION)) * 1000L);
             TimerAccess.getTimerFromOverworld(server).timer_runTask(delayTask);
         }
 
@@ -23,7 +54,16 @@ public class KhunegosTask {
             this(server.getOverworld().getRandom(), server);
         }
 
+        private boolean validPlayer(KhunegosPlayer player, boolean hunter) {
+            if (hunter) return player.getMaxHealth() < 15 && player.getTask() == null;
+            return player.getMaxHealth() >= 5 && player.getTask() == null;
+        }
+
         public boolean isKhunegosTask() {
+            if (!delayTask.isRunning() && task == null) {
+                Khunegos.LOGGER.error("Task in incoming is null");
+                return false;
+            }
             return !delayTask.isRunning() && !task.isFinished();
         }
 

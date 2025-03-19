@@ -108,7 +108,7 @@ public class KhunegosPlayer {
     }
 
     public int getMaxHealth() {
-        return (int) Math.floor((20 + healthModifier) / 2);
+        return MathHelper.floor((20 + healthModifier) / 2);
     }
 
     public BlockPos getCoords() {
