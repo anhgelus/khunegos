@@ -45,8 +45,8 @@ public class KhunegosTask {
                     Khunegos.LOGGER.error("Cannot find a valid player for being a prey");
                     return;
                 }
-                task = new KhunegosTask(khunegosHunter, khunegosPrey);
-            }, MathHelper.nextInt(rand, 0, MathHelper.floor(5* Khunegos.KHUNEGOS_DURATION)) * 1000L);
+                task = new KhunegosTask(server, khunegosHunter, khunegosPrey);
+            }, MathHelper.nextInt(rand, 0, MathHelper.floor(5* Khunegos.KHUNEGOS_BASE_DELAY)) * 1000L);
             TimerAccess.getTimerFromOverworld(server).timer_runTask(delayTask);
         }
 
@@ -55,8 +55,8 @@ public class KhunegosTask {
         }
 
         private boolean validPlayer(KhunegosPlayer player, boolean hunter) {
-            if (hunter) return player.getMaxHealth() < 15 && player.getTask() == null;
-            return player.getMaxHealth() >= 5 && player.getTask() == null;
+            return hunter ? player.getMaxHealth() < 15 && player.getTask() == null :
+                    player.getMaxHealth() >= 5 && player.getTask() == null;
         }
 
         public boolean isKhunegosTask() {
@@ -79,16 +79,24 @@ public class KhunegosTask {
     public final KhunegosPlayer hunter;
     public final KhunegosPlayer prey;
 
+    private final TickTask task;
+
     private boolean preyKilled = false;
     private boolean finished = false;
 
-    public KhunegosTask(KhunegosPlayer hunter, KhunegosPlayer prey) {
+    private KhunegosTask(MinecraftServer server, KhunegosPlayer hunter, KhunegosPlayer prey) {
         this.hunter = hunter;
         this.prey = prey;
         // assign tasks
         hunter.assignTask(this);
         prey.assignTask(this);
-        //TODO: handle planning of end
+
+        final var d = MathHelper.nextFloat(server.getOverworld().getRandom(), 0, 1);
+        final var duration = MathHelper.floor(20*(Khunegos.KHUNEGOS_DURATION + d));
+
+        final var timer = TimerAccess.getTimerFromOverworld(server);
+        task = new TickTask(this::finish, duration*1000L);
+        timer.timer_runTask(task);
         //TODO: broadcast starts
         //TODO: give books
     }
@@ -96,12 +104,18 @@ public class KhunegosTask {
     public void onPreyKilled() {
         preyKilled = true;
         finish();
+        task.cancel();
     }
 
-    public void finish() {
+    private void finish() {
+        if (finished) {
+            Khunegos.LOGGER.warn("Khunegos already finished");
+            return;
+        }
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
+        //TODO: plan next one
     }
 
     public boolean isFinished() {
@@ -110,10 +124,5 @@ public class KhunegosTask {
 
     public void onPreyDisconnection() {
         //
-    }
-
-    private static Incoming planNextOne() {
-        //TODO: implements
-        return null;
     }
 }
