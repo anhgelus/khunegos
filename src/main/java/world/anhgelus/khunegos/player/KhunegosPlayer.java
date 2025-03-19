@@ -15,11 +15,28 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class KhunegosPlayer {
     public enum Role {
         HUNTER,
         PREY,
         NONE
+    }
+
+    public static class Manager {
+        private static final Map<UUID, KhunegosPlayer> players = new HashMap<>();
+
+        public static KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
+            return players.computeIfAbsent(player.getUuid(), k -> new KhunegosPlayer(player));
+        }
+
+        @Nullable
+        public static KhunegosPlayer getKhunegosPlayer(UUID uuid) {
+            return players.get(uuid);
+        }
     }
     public static Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
 

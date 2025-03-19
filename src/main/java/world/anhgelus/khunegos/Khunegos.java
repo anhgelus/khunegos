@@ -26,7 +26,6 @@ public class Khunegos implements ModInitializer {
     public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
 
-    private static final Map<UUID, KhunegosPlayer> players = new HashMap<>();
     private final List<KhunegosTask.Incoming> khunegosTaskList = new ArrayList<>();
 
     @Override
@@ -73,12 +72,12 @@ public class Khunegos implements ModInitializer {
         });
     }
 
-    public static KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
-        return players.computeIfAbsent(player.getUuid(), k -> new KhunegosPlayer(player));
+    private KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
+        return KhunegosPlayer.Manager.getKhunegosPlayer(player);
     }
 
     @Nullable
-    public static KhunegosPlayer getKhunegosPlayer(UUID uuid) {
-        return players.get(uuid);
+    private KhunegosPlayer getKhunegosPlayer(UUID uuid) {
+        return KhunegosPlayer.Manager.getKhunegosPlayer(uuid);
     }
 }
