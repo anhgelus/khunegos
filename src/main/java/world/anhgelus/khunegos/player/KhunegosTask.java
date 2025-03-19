@@ -12,11 +12,13 @@ public class KhunegosTask {
         // assign tasks
         hunter.assignTask(this);
         prey.assignTask(this);
+        //TODO: handle planning of end
+        //TODO: broadcast starts
+        //TODO: give books
     }
 
     public void onPreyKilled() {
         preyKilled = true;
-        //TODO: drop prey's heart
     }
 
     public void finish() {
@@ -26,5 +28,14 @@ public class KhunegosTask {
 
     public void onPreyDisconnection() {
         //
+    }
+
+    private static KhunegosTask planNextOne() {
+        //TODO: implements
+        return null;
+    }
+
+    public static void cancelOneNext() {
+        //TODO: cancel one planned random next task
     }
 }

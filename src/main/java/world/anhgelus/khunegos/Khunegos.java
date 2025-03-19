@@ -33,6 +33,7 @@ public class Khunegos implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             final var khunegosPlayer = getKhunegosPlayer(handler.player);
             khunegosPlayer.onRespawn(handler.player);
+            //TODO: handle launch of Khunegos
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
@@ -42,7 +43,11 @@ public class Khunegos implements ModInitializer {
                 khunegosPlayer.onDeath(false);
                 return;
             }
-            getKhunegosPlayer(player).onDeath(true);
+            khunegosPlayer.onDeath(true);
+            if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) return;
+            final var task = khunegosPlayer.getTask();
+            assert task != null; // is always valid because task is never null if role == prey
+            task.onPreyKilled();
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
