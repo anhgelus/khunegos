@@ -107,7 +107,7 @@ public class KhunegosPlayer {
         return role;
     }
 
-    public int getMaxHealth() {
+    public int getMaxHearts() {
         return MathHelper.floor((20 + healthModifier) / 2);
     }
 

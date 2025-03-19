@@ -26,8 +26,6 @@ public class Khunegos implements ModInitializer {
     public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
 
-    private final List<KhunegosTask.Incoming> khunegosTaskList = new ArrayList<>();
-
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Khunegos");
@@ -46,7 +44,7 @@ public class Khunegos implements ModInitializer {
             }
             // create first khunegos
             if (server.getPlayerManager().getPlayerList().size() < next.get()) return;
-            khunegosTaskList.add(new KhunegosTask.Incoming(server));
+            KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
             started.set(true);
         });
 
@@ -61,7 +59,9 @@ public class Khunegos implements ModInitializer {
             if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) return;
             final var task = khunegosPlayer.getTask();
             assert task != null; // is always valid because task is never null if role == prey
-            task.onPreyKilled();
+            // remove old task and add new planned
+            KhunegosTask.Manager.addTask(task.onPreyKilled());
+            KhunegosTask.Manager.removeTask(task);
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
