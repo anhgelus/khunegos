@@ -70,7 +70,7 @@ public class KhunegosTask {
     }
 
     public void onPreyDisconnection() {
-        //
+        //TODO: spawn armor stand representing player with same armor and same health
     }
 
     /**
@@ -113,7 +113,6 @@ public class KhunegosTask {
             final var delay = first ? (t + m) % m : MathHelper.floor(20 * (Khunegos.KHUNEGOS_BASE_DELAY + t));
             this.delayTask = new TickTask(() -> {
                 final var players = new ArrayList<>(server.getPlayerManager().getPlayerList());
-                ;
                 final var khunegosHunter = getRandomPlayer(players, rand, true);
                 if (khunegosHunter == null) {
                     Khunegos.LOGGER.error("Cannot find a valid player for being a hunter");
