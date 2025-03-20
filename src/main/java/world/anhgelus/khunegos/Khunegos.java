@@ -31,6 +31,7 @@ public class Khunegos implements ModInitializer {
     public static final float KHUNEGOS_BASE_DELAY = 1f; // in day(s)
     public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
+    public static final String KEY = MOD_ID;
 
     @Override
     public void onInitialize() {
@@ -86,8 +87,8 @@ public class Khunegos implements ModInitializer {
             if (!is.isOf(Items.BOOK)) return ActionResult.PASS;
             final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
             if (nbt == null) return ActionResult.PASS;
-            if (!nbt.contains("khunegos")) return ActionResult.PASS;
-            if (!nbt.copyNbt().getBoolean("khunegos")) return ActionResult.PASS;
+            if (!nbt.contains(KEY)) return ActionResult.PASS;
+            if (!nbt.copyNbt().getBoolean(KEY)) return ActionResult.PASS;
             // modify book content
             is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(serverPlayer).getBookContent());
             return ActionResult.SUCCESS;
