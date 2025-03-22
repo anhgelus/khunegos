@@ -13,15 +13,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.player.KhunegosPlayer;
 import world.anhgelus.khunegos.player.KhunegosTask;
 
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static world.anhgelus.khunegos.player.KhunegosPlayer.Manager.getKhunegosPlayer;
 
 public class Khunegos implements ModInitializer {
     public static final String MOD_ID = "khunegos";
@@ -49,18 +49,25 @@ public class Khunegos implements ModInitializer {
             final var playersConnected = server.getPlayerManager().getPlayerList().size();
             if (firstStarted.get()) {
                 if (MathHelper.nextInt(rand, 0, 1) == 1) return;
-                // prevents starting a new task
-                if (playersConnected - 2 <= KhunegosTask.Manager.getTasks().size() / 2) return;
-                KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
+                if (KhunegosTask.Manager.canServerStartsNewTask(server))
+                    KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, false));
+                else LOGGER.info("Cannot start a new task (not enough players)");
                 return;
             }
-            // create first khunegos
             if (playersConnected < next.get()) return;
+            // create first khunegos
             KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
             firstStarted.set(true);
         });
 
-        //TODO: handle disconnection
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            final var khunegosPlayer = getKhunegosPlayer(handler.player);
+            final var role = khunegosPlayer.getRole();
+            if (role == KhunegosPlayer.Role.NONE) KhunegosTask.Manager.updateIncomingTasks(server);
+            final var task = khunegosPlayer.getTask();
+            assert task != null; // true because role != none
+            if (role == KhunegosPlayer.Role.PREY) task.onPreyDisconnection();
+        });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) return;
@@ -100,14 +107,5 @@ public class Khunegos implements ModInitializer {
             is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(serverPlayer).getBookContent());
             return ActionResult.SUCCESS;
         });
-    }
-
-    private KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
-        return KhunegosPlayer.Manager.getKhunegosPlayer(player);
-    }
-
-    @Nullable
-    private KhunegosPlayer getKhunegosPlayer(UUID uuid) {
-        return KhunegosPlayer.Manager.getKhunegosPlayer(uuid);
     }
 }

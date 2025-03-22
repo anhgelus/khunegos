@@ -12,9 +12,10 @@ import world.anhgelus.khunegos.timer.TimerAccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Represents the task to complete during Khunegos for p and prey
+ * Represents the task to complete during Khunegos for hunter and prey
  */
 public class KhunegosTask {
     public final KhunegosPlayer hunter;
@@ -36,7 +37,8 @@ public class KhunegosTask {
         final var duration = MathHelper.floor(20 * (Khunegos.KHUNEGOS_DURATION + d));
         final var timer = TimerAccess.getTimerFromOverworld(server);
         task = new TickTask(() -> {
-            Manager.addTask(finish());
+            final var next = finish();
+            if (next != null) Manager.addTask(next);
             Manager.removeTask(this);
         }, duration * 1000L);
         timer.timer_runTask(task);
@@ -54,6 +56,7 @@ public class KhunegosTask {
         return in;
     }
 
+    @Nullable
     private Incoming finish() {
         if (finished) {
             Khunegos.LOGGER.warn("Khunegos already finished");
@@ -62,7 +65,8 @@ public class KhunegosTask {
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
-        return new Incoming(server, false);
+        if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
+        return null;
     }
 
     public boolean isFinished() {
@@ -70,14 +74,18 @@ public class KhunegosTask {
     }
 
     public void onPreyDisconnection() {
-        //TODO: spawn armor stand representing player with same armor and same health
+        //TODO: spawn armor stand representing player with same health
+    }
+
+    public void onPreyReconnection() {
+        //TODO: remove armor stand and update their health
     }
 
     /**
      * Manage all tasks
      */
     public static class Manager {
-        private static List<Incoming> khunegosTaskList = new ArrayList<>();
+        private static final List<Incoming> khunegosTaskList = new ArrayList<>();
 
         /**
          * @return copy of the khunegos task list
@@ -86,16 +94,51 @@ public class KhunegosTask {
             return List.copyOf(khunegosTaskList);
         }
 
+        /**
+         * @return true if a task was removed, false otherwise
+         */
+        public static boolean removeRandomTask(Random rand) {
+            final var list = khunegosTaskList
+                    .stream()
+                    .filter(Incoming::isKhunegosTask)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            if (list.isEmpty()) return false;
+            final var rem = list.get(rand.nextBetween(0, list.size() - 1));
+            return khunegosTaskList.remove(rem);
+        }
+
+        public static void updateIncomingTasks(MinecraftServer server) {
+            if (!canServerStartsNewTask(server)) return;
+            if (!removeRandomTask(server.getOverworld().getRandom())) {
+                Khunegos.LOGGER.warn("Failed to remove a random task");
+            };
+        }
+
+        public static boolean canServerStartsNewTask(MinecraftServer server) {
+            return server.getPlayerManager().getPlayerList().size() - 2 >= KhunegosTask.Manager.getTasks().size() / 2;
+        }
+
         public static void addTask(Incoming incoming) {
             khunegosTaskList.add(incoming);
         }
 
+        /**
+         * @throws IllegalArgumentException if {@link Incoming#isKhunegosTask()} is true for the given task
+         */
         public static void removeTask(Incoming incoming) {
+            if (incoming.isKhunegosTask()) throw new IllegalArgumentException("Cannot cancel KhunegosTask");
+            incoming.cancel();
             khunegosTaskList.remove(incoming);
         }
 
+        /**
+         * @throws IllegalArgumentException if cannot find an incoming task with the given task
+         * @throws IllegalArgumentException if {@link Incoming#isKhunegosTask()} is true for the given task
+         */
         public static void removeTask(KhunegosTask task) {
-            khunegosTaskList = new ArrayList<>(khunegosTaskList.stream().dropWhile(in -> (in.task == task)).toList());
+            final var in = khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElse(null);
+            if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
+            removeTask(in);
         }
     }
 
@@ -107,6 +150,7 @@ public class KhunegosTask {
         public KhunegosTask task;
 
         public Incoming(Random rand, MinecraftServer server, boolean first) {
+            if (!Manager.canServerStartsNewTask(server)) throw new IllegalStateException("Cannot start a new Khunegos task");
             final var m = MathHelper.floor(5 * Khunegos.KHUNEGOS_BASE_DELAY);
             final var t = MathHelper.nextInt(rand, -m, m);
             // if first, delay is in [0, 5*alpha[, else is 20(alpha + t) where t is in [-5 alpha; 5 alpha]
@@ -171,6 +215,7 @@ public class KhunegosTask {
         public void cancel() {
             if (isKhunegosTask()) throw new IllegalStateException("Cannot cancel KhunegosTask");
             delayTask.cancel();
+            Manager.removeTask(this);
         }
     }
 }
