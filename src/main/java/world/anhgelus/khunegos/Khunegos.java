@@ -38,22 +38,29 @@ public class Khunegos implements ModInitializer {
         LOGGER.info("Initializing Khunegos");
 
         final var next = new AtomicInteger(-1);
-        final var started = new AtomicBoolean(false);
+        final var firstStarted = new AtomicBoolean(false);
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             final var khunegosPlayer = getKhunegosPlayer(handler.player);
             khunegosPlayer.onRespawn(handler.player);
             // setup khunegos
-            if (next.get() == -1) next.set(4 + MathHelper.nextInt(server.getOverworld().getRandom(), -1, 1));
-            if (started.get()) {
-                //TODO: handle multiple khunegos
+            final var rand = server.getOverworld().getRandom();
+            if (next.get() == -1) next.set(4 + MathHelper.nextInt(rand, -1, 1));
+            final var playersConnected = server.getPlayerManager().getPlayerList().size();
+            if (firstStarted.get()) {
+                if (MathHelper.nextInt(rand, 0, 1) == 1) return;
+                // prevents starting a new task
+                if (playersConnected - 2 <= KhunegosTask.Manager.getTasks().size() / 2) return;
+                KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
                 return;
             }
             // create first khunegos
-            if (server.getPlayerManager().getPlayerList().size() < next.get()) return;
+            if (playersConnected < next.get()) return;
             KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
-            started.set(true);
+            firstStarted.set(true);
         });
+
+        //TODO: handle disconnection
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) return;
