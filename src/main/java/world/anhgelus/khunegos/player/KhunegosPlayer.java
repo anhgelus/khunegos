@@ -47,7 +47,7 @@ public class KhunegosPlayer {
     }
 
     public void onDeath(boolean killedByPlayer) {
-        if (!killedByPlayer && role != Role.PREY) return;
+        if (!killedByPlayer || role != Role.PREY) return;
         // save uuid in nbt
         final var nbt = new NbtCompound();
         nbt.putUuid(KEY, player.getUuid());

@@ -72,14 +72,17 @@ public class Khunegos implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) return;
             final var khunegosPlayer = getKhunegosPlayer(player);
-            if (!damageSource.isOf(DamageTypes.PLAYER_ATTACK) && !damageSource.isOf(DamageTypes.PLAYER_EXPLOSION)) {
+            if (!(damageSource.getAttacker() instanceof ServerPlayerEntity killer)) {
                 khunegosPlayer.onDeath(false);
                 return;
             }
-            khunegosPlayer.onDeath(true);
-            if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) return;
+            if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) {
+                khunegosPlayer.onDeath(true);
+                return;
+            }
             final var task = khunegosPlayer.getTask();
             assert task != null; // is always valid because task is never null if role == prey
+            khunegosPlayer.onDeath(task.hunter == getKhunegosPlayer(killer)); // checks if it's the right player
             // remove old task and add new planned
             KhunegosTask.Manager.addTask(task.onPreyKilled());
             KhunegosTask.Manager.removeTask(task);
