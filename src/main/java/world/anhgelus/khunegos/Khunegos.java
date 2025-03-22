@@ -13,15 +13,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.player.KhunegosPlayer;
 import world.anhgelus.khunegos.player.KhunegosTask;
 
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static world.anhgelus.khunegos.player.KhunegosPlayer.Manager.getKhunegosPlayer;
 
 public class Khunegos implements ModInitializer {
     public static final String MOD_ID = "khunegos";
@@ -38,34 +38,51 @@ public class Khunegos implements ModInitializer {
         LOGGER.info("Initializing Khunegos");
 
         final var next = new AtomicInteger(-1);
-        final var started = new AtomicBoolean(false);
+        final var firstStarted = new AtomicBoolean(false);
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             final var khunegosPlayer = getKhunegosPlayer(handler.player);
             khunegosPlayer.onRespawn(handler.player);
             // setup khunegos
-            if (next.get() == -1) next.set(4 + MathHelper.nextInt(server.getOverworld().getRandom(), -1, 1));
-            if (started.get()) {
-                //TODO: handle multiple khunegos
+            final var rand = server.getOverworld().getRandom();
+            if (next.get() == -1) next.set(4 + MathHelper.nextInt(rand, -1, 1));
+            final var playersConnected = server.getPlayerManager().getPlayerList().size();
+            if (firstStarted.get()) {
+                if (MathHelper.nextInt(rand, 0, 1) == 1) return;
+                if (KhunegosTask.Manager.canServerStartsNewTask(server))
+                    KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, false));
+                else LOGGER.info("Cannot start a new task (not enough players)");
                 return;
             }
+            if (playersConnected < next.get()) return;
             // create first khunegos
-            if (server.getPlayerManager().getPlayerList().size() < next.get()) return;
             KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
-            started.set(true);
+            firstStarted.set(true);
+        });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            final var khunegosPlayer = getKhunegosPlayer(handler.player);
+            final var role = khunegosPlayer.getRole();
+            if (role == KhunegosPlayer.Role.NONE) KhunegosTask.Manager.updateIncomingTasks(server);
+            final var task = khunegosPlayer.getTask();
+            assert task != null; // true because role != none
+            if (role == KhunegosPlayer.Role.PREY) task.onPreyDisconnection();
         });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) return;
             final var khunegosPlayer = getKhunegosPlayer(player);
-            if (!damageSource.isOf(DamageTypes.PLAYER_ATTACK) && !damageSource.isOf(DamageTypes.PLAYER_EXPLOSION)) {
+            if (!(damageSource.getAttacker() instanceof ServerPlayerEntity killer)) {
                 khunegosPlayer.onDeath(false);
                 return;
             }
-            khunegosPlayer.onDeath(true);
-            if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) return;
+            if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) {
+                khunegosPlayer.onDeath(true);
+                return;
+            }
             final var task = khunegosPlayer.getTask();
             assert task != null; // is always valid because task is never null if role == prey
+            khunegosPlayer.onDeath(task.hunter == getKhunegosPlayer(killer)); // checks if it's the right player
             // remove old task and add new planned
             KhunegosTask.Manager.addTask(task.onPreyKilled());
             KhunegosTask.Manager.removeTask(task);
@@ -93,14 +110,5 @@ public class Khunegos implements ModInitializer {
             is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(serverPlayer).getBookContent());
             return ActionResult.SUCCESS;
         });
-    }
-
-    private KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
-        return KhunegosPlayer.Manager.getKhunegosPlayer(player);
-    }
-
-    @Nullable
-    private KhunegosPlayer getKhunegosPlayer(UUID uuid) {
-        return KhunegosPlayer.Manager.getKhunegosPlayer(uuid);
     }
 }
