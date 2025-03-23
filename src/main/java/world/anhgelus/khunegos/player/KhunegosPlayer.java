@@ -65,6 +65,11 @@ public class KhunegosPlayer {
         updateHealth();
     }
 
+    public void onDeposeHeart() {
+        healthModifier += 2;
+        updateHealth();
+    }
+
     public void assignTask(@NotNull KhunegosTask task) {
         this.task = task;
         if (task.hunter == this) role = Role.HUNTER;

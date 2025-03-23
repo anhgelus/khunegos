@@ -2,8 +2,10 @@ package world.anhgelus.khunegos.listener;
 
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -12,6 +14,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
@@ -95,6 +98,22 @@ public class PlayerListeners {
         if (!nbt.copyNbt().getBoolean(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;
         // modify book content
         is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(serverPlayer).getBookContent());
+        return ActionResult.SUCCESS;
+    }
+
+    public static ActionResult clickOnEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
+        if (!(entity instanceof ArmorStandEntity armorStand)) return ActionResult.PASS;
+        //TODO: checks armor stand validity
+        // check validity of nether star
+        ItemStack is;
+        if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
+        else return ActionResult.PASS;
+        if (!is.isOf(Items.NETHER_STAR)) return ActionResult.PASS;
+        final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
+        if (nbt == null) return ActionResult.PASS;
+        if (!nbt.contains(KhunegosPlayer.PLAYER_KEY)) return ActionResult.PASS;
+        player.getInventory().removeOne(is);
+        getKhunegosPlayer((ServerPlayerEntity) player).onDeposeHeart();
         return ActionResult.SUCCESS;
     }
 }
