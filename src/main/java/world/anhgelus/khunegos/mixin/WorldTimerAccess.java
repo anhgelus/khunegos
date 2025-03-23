@@ -36,4 +36,14 @@ public class WorldTimerAccess implements TimerAccess {
     public List<TickTask> timer_getTasks() {
         return tasks.stream().filter(TickTask::isRunning).toList();
     }
+
+    @Override
+    public String timer_toString() {
+        final var sb = new StringBuilder();
+        sb.append("WorldTimerAccess(")
+                .append("number of tasks=").append(tasks.size());
+        tasks.forEach(task -> sb.append(", ").append(task.toString()));
+        sb.append(")");
+        return sb.toString();
+    }
 }
