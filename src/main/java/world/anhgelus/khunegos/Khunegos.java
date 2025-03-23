@@ -1,12 +1,14 @@
 package world.anhgelus.khunegos;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import world.anhgelus.khunegos.command.CommandHandler;
 import world.anhgelus.khunegos.listener.PlayerListeners;
 
 public class Khunegos implements ModInitializer {
@@ -22,6 +24,8 @@ public class Khunegos implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Khunegos");
+
+        CommandRegistrationCallback.EVENT.register(CommandHandler::bootstrap);
 
         ServerPlayConnectionEvents.JOIN.register(PlayerListeners::join);
         ServerPlayConnectionEvents.DISCONNECT.register(PlayerListeners::disconnect);
