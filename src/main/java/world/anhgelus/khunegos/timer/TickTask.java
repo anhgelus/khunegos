@@ -6,13 +6,11 @@ package world.anhgelus.khunegos.timer;
  * @author William Hergès, Architects Land
  */
 public class TickTask implements TimerAccess.TickTask {
-    private boolean cancelled = false;
-
     public final long ticksDelay;
     public final long ticksRepeat;
     public final boolean repeating;
     public final TimerAccess.Task task;
-
+    private boolean cancelled = false;
     private long currentTicking;
 
     /**
@@ -72,5 +70,17 @@ public class TickTask implements TimerAccess.TickTask {
     public long getTickingBeforeRun() {
         if (cancelled) return -1;
         return currentTicking;
+    }
+
+    public String toString() {
+        final var sb = new StringBuilder();
+        sb.append("TickTask{")
+                .append("delay=").append(ticksDelay)
+                .append(", repeat=").append(ticksRepeat)
+                .append("} (")
+                .append(", before run=").append(getTickingBeforeRun())
+                .append(", cancelled=").append(cancelled)
+                .append(")");
+        return sb.toString();
     }
 }

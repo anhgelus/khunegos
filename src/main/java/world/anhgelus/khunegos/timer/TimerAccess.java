@@ -9,6 +9,35 @@ import java.util.List;
  * @author William Hergès, Architects Land
  */
 public interface TimerAccess {
+    /**
+     * Get the timer linked to the overworld
+     *
+     * @param server Current server
+     * @return TimerAccess linked to the overworld
+     */
+    static TimerAccess getTimerFromOverworld(MinecraftServer server) {
+        final var timer = (TimerAccess) server.getWorld(World.OVERWORLD);
+        if (timer == null)
+            throw new NullPointerException("Impossible to get TimerAccess from the overworld (it is null)");
+        return timer;
+    }
+
+    /**
+     * Run a task (called each tick ticked)
+     *
+     * @param task Task to run
+     */
+    void timer_runTask(TimerAccess.TickTask task);
+
+    void timer_cancel();
+
+    /**
+     * @return All non-cancelled tasks
+     */
+    List<TickTask> timer_getTasks();
+
+    String timer_toString();
+
     interface TickTask {
         /**
          * Tick the task
@@ -37,32 +66,5 @@ public interface TimerAccess {
     @FunctionalInterface
     interface Task {
         void run();
-    }
-
-    /**
-     * Run a task (called each tick ticked)
-     *
-     * @param task Task to run
-     */
-    void timer_runTask(TimerAccess.TickTask task);
-
-    void timer_cancel();
-
-    /**
-     * @return All non-cancelled tasks
-     */
-    List<TickTask> timer_getTasks();
-
-    /**
-     * Get the timer linked to the overworld
-     *
-     * @param server Current server
-     * @return TimerAccess linked to the overworld
-     */
-    static TimerAccess getTimerFromOverworld(MinecraftServer server) {
-        final var timer = (TimerAccess) server.getWorld(World.OVERWORLD);
-        if (timer == null)
-            throw new NullPointerException("Impossible to get TimerAccess from the overworld (it is null)");
-        return timer;
     }
 }
