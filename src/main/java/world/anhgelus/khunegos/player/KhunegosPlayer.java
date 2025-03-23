@@ -153,6 +153,20 @@ public class KhunegosPlayer {
         attr.addTemporaryModifier(modifier);
     }
 
+    public UUID getUuid() {
+        return player.getUuid();
+    }
+
+    public String toString() {
+        final var sb = new StringBuilder();
+        sb.append("KhunegosPlayer{")
+                .append("role=").append(role)
+                .append(", player=").append(player)
+                .append(", task=").append(task)
+                .append("}").append(role);
+        return sb.toString();
+    }
+
     public enum Role {
         HUNTER,
         PREY,

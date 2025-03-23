@@ -22,6 +22,7 @@ public class KhunegosTask {
     public final KhunegosPlayer prey;
     private final TickTask task;
     private final MinecraftServer server;
+    private final long duration;
     private boolean preyKilled = false;
     private boolean finished = false;
 
@@ -34,7 +35,7 @@ public class KhunegosTask {
         prey.assignTask(this);
         // create timer to finish and to starts new task
         final var d = MathHelper.nextFloat(server.getOverworld().getRandom(), 0, 1);
-        final var duration = MathHelper.floor(20 * (Khunegos.KHUNEGOS_DURATION + d));
+        duration = MathHelper.floor(20 * (Khunegos.KHUNEGOS_DURATION + d));
         final var timer = TimerAccess.getTimerFromOverworld(server);
         task = new TickTask(() -> {
             final var next = finish();
@@ -81,6 +82,19 @@ public class KhunegosTask {
         //TODO: remove armor stand and update their health
     }
 
+    public String toString() {
+        final var sb = new StringBuilder();
+        sb.append("KhunegosTask{")
+                .append("duration=").append(duration)
+                .append(", hunter=").append(hunter.getUuid())
+                .append(", prey=").append(prey.getUuid())
+                .append("} (")
+                .append("finished=").append(finished)
+                .append("tick task=").append(task)
+                .append(")");
+        return sb.toString();
+    }
+
     /**
      * Manage all tasks
      */
@@ -111,7 +125,8 @@ public class KhunegosTask {
             if (!canServerStartsNewTask(server)) return;
             if (!removeRandomTask(server.getOverworld().getRandom())) {
                 Khunegos.LOGGER.warn("Failed to remove a random task");
-            };
+            }
+            ;
         }
 
         public static boolean canServerStartsNewTask(MinecraftServer server) {
@@ -150,7 +165,8 @@ public class KhunegosTask {
         public KhunegosTask task;
 
         public Incoming(Random rand, MinecraftServer server, boolean first) {
-            if (!Manager.canServerStartsNewTask(server)) throw new IllegalStateException("Cannot start a new Khunegos task");
+            if (!Manager.canServerStartsNewTask(server))
+                throw new IllegalStateException("Cannot start a new Khunegos task");
             final var m = MathHelper.floor(5 * Khunegos.KHUNEGOS_BASE_DELAY);
             final var t = MathHelper.nextInt(rand, -m, m);
             // if first, delay is in [0, 5*alpha[, else is 20(alpha + t) where t is in [-5 alpha; 5 alpha]
@@ -216,6 +232,16 @@ public class KhunegosTask {
             if (isKhunegosTask()) throw new IllegalStateException("Cannot cancel KhunegosTask");
             delayTask.cancel();
             Manager.removeTask(this);
+        }
+
+        public String toString() {
+            final var sb = new StringBuilder();
+            sb.append("Incoming(")
+                    .append("is khunegos task=").append(isKhunegosTask())
+                    .append(", tick delay task=").append(delayTask)
+                    .append(", khunegos task=").append(task)
+                    .append(")");
+            return sb.toString();
         }
     }
 }
