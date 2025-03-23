@@ -8,5 +8,6 @@ import net.minecraft.server.command.ServerCommandSource;
 public class CommandHandler {
     public static void bootstrap(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         BookCommand.bootstrap(dispatcher);
+        TaskCommand.bootstrap(dispatcher);
     }
 }
