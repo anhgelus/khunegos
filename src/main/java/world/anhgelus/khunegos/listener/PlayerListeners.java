@@ -91,8 +91,8 @@ public class PlayerListeners {
         if (!is.isOf(Items.BOOK)) return ActionResult.PASS;
         final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
         if (nbt == null) return ActionResult.PASS;
-        if (!nbt.contains(Khunegos.KEY)) return ActionResult.PASS;
-        if (!nbt.copyNbt().getBoolean(Khunegos.KEY)) return ActionResult.PASS;
+        if (!nbt.contains(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;
+        if (!nbt.copyNbt().getBoolean(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;
         // modify book content
         is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(serverPlayer).getBookContent());
         return ActionResult.SUCCESS;

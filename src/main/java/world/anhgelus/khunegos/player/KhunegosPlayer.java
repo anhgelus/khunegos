@@ -25,7 +25,8 @@ import java.util.UUID;
 
 public class KhunegosPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
-    public static final String KEY = Khunegos.KEY + "_player";
+    public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
+    public static final String BOOK_KEY = Khunegos.BASE_KEY + "_book"; // is a khunegos book
 
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
@@ -50,7 +51,7 @@ public class KhunegosPlayer {
         if (!killedByPlayer || role != Role.PREY) return;
         // save uuid in nbt
         final var nbt = new NbtCompound();
-        nbt.putUuid(KEY, player.getUuid());
+        nbt.putUuid(PLAYER_KEY, player.getUuid());
         // create itemstack
         final var is = new ItemStack(Items.NETHER_STAR);
         is.set(DataComponentTypes.CUSTOM_NAME, player.getName());
@@ -83,11 +84,11 @@ public class KhunegosPlayer {
         // prevents giving same book
         if (player.getInventory().contains(is -> {
             final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
-            return nbt != null && nbt.contains(Khunegos.KEY) && nbt.copyNbt().getBoolean(Khunegos.KEY);
+            return nbt != null && nbt.contains(BOOK_KEY) && nbt.copyNbt().getBoolean(BOOK_KEY);
         })) return;
         final var is = new ItemStack(Items.BOOK);
         final var nbt = new NbtCompound();
-        nbt.putBoolean(Khunegos.KEY, true);
+        nbt.putBoolean(BOOK_KEY, true);
         is.set(DataComponentTypes.CUSTOM_NAME, Text.of("Khunegos"));
         is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
         player.giveOrDropStack(is);

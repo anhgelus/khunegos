@@ -17,7 +17,7 @@ public class Khunegos implements ModInitializer {
     public static final float KHUNEGOS_BASE_DELAY = 1f; // in day(s)
     public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
-    public static final String KEY = MOD_ID;
+    public static final String BASE_KEY = MOD_ID; // base key of all NBT things
 
     @Override
     public void onInitialize() {
