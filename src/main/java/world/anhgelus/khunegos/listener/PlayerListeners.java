@@ -9,6 +9,7 @@ import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -103,15 +104,20 @@ public class PlayerListeners {
 
     public static ActionResult clickOnEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (!(entity instanceof ArmorStandEntity armorStand)) return ActionResult.PASS;
-        //TODO: checks armor stand validity
+        // check armor stand validity
+        final var armorNbt = new NbtCompound();
+        armorStand.readNbt(armorNbt);
+        if (!armorNbt.contains(Khunegos.ARMOR_STAND_KEY) || !armorNbt.getBoolean(Khunegos.ARMOR_STAND_KEY))
+            return ActionResult.PASS;
+        // now, send FAIL to prevent player to pick armor stand's thing
         // check validity of nether star
         ItemStack is;
         if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
-        else return ActionResult.PASS;
+        else return ActionResult.FAIL;
         if (!is.isOf(Items.NETHER_STAR)) return ActionResult.FAIL; // fail to prevent player to pick armor stand's thing
         final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
-        if (nbt == null) return ActionResult.PASS;
-        if (!nbt.contains(KhunegosPlayer.PLAYER_KEY)) return ActionResult.PASS;
+        if (nbt == null) return ActionResult.FAIL;
+        if (!nbt.contains(KhunegosPlayer.PLAYER_KEY)) return ActionResult.FAIL;
         player.getInventory().removeOne(is);
         getKhunegosPlayer((ServerPlayerEntity) player).onDeposeHeart();
         return ActionResult.SUCCESS;

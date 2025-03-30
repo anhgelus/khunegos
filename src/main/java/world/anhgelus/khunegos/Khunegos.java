@@ -12,6 +12,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import org.slf4j.Logger;
@@ -20,7 +21,8 @@ import world.anhgelus.khunegos.command.CommandHandler;
 import world.anhgelus.khunegos.listener.PlayerListeners;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Khunegos implements ModInitializer {
     public static final String MOD_ID = "khunegos";
@@ -31,9 +33,10 @@ public class Khunegos implements ModInitializer {
     public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
     public static final String BASE_KEY = MOD_ID; // base key of all NBT things
+    public static final String ARMOR_STAND_KEY = BASE_KEY + "_armor_stand"; // base key of all NBT things
 
-    private static final List<BlockPos> armorStandsToSpawn = new ArrayList<>();
-    private static final List<ChunkPos> alreadySpawned = new ArrayList<>();
+    private static final Set<BlockPos> armorStandsToSpawn = new HashSet<>();
+    private static final Set<ChunkPos> alreadySpawned = new HashSet<>();
 
     public static void spawnArmorStand(BlockPos pos) {
         armorStandsToSpawn.add(pos);
@@ -65,7 +68,6 @@ public class Khunegos implements ModInitializer {
                         cPos.getStartZ() <= pos.getZ() &&
                         pos.getZ() <= cPos.getEndZ())) return;
                 alreadySpawned.add(cPos);
-                LOGGER.info("spawning");
                 final var armorStand = new ArmorStandEntity(world, pos.getX(), pos.getY() + 25, pos.getZ());
                 // invulnerable, on ground, cannot move, without gravity, no base plate
                 armorStand.setInvulnerable(true);
@@ -76,12 +78,15 @@ public class Khunegos implements ModInitializer {
                 // give simple stuff
                 armorStand.equipStack(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
                 armorStand.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHER_STAR));
-                //TODO: define specific khunegos armor stand
-                Khunegos.LOGGER.info("arrives here");
+                // protect armor stand
+                final var nbt = new NbtCompound();
+                nbt.putBoolean(ARMOR_STAND_KEY, true);
+                armorStand.writeNbt(nbt);
+
                 world.spawnEntity(armorStand);
                 toDelete.add(pos);
             });
-            armorStandsToSpawn.removeAll(toDelete);
+            toDelete.forEach(armorStandsToSpawn::remove);
         });
     }
 }
