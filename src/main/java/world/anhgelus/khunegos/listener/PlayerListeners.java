@@ -37,7 +37,7 @@ public class PlayerListeners {
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
         if (next == -1) next = 4 + MathHelper.nextInt(rand, -1, 1);
-        final var playersConnected = server.getPlayerManager().getPlayerList().size();
+        final var playersConnected = server.getPlayerManager().getPlayerList().size() + 1;
         if (firstStarted) {
             if (MathHelper.nextInt(rand, 0, 1) == 1) return;
             if (KhunegosTask.Manager.canServerStartsNewTask(server))
@@ -45,10 +45,13 @@ public class PlayerListeners {
             else logger.info("Cannot start a new task (not enough players)");
             return;
         }
-        if (playersConnected < next) return;
+        logger.info("first not started, {}", playersConnected);
+        if (playersConnected < 2) return;
+        logger.info("right amount");
         // create first khunegos
         KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
         firstStarted = true;
+        logger.info("task added");
     }
 
     public static void disconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
@@ -92,7 +95,7 @@ public class PlayerListeners {
         ItemStack is;
         if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
         else return ActionResult.PASS;
-        if (!is.isOf(Items.BOOK)) return ActionResult.PASS;
+        if (!is.isOf(Items.WRITTEN_BOOK)) return ActionResult.PASS;
         final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
         if (nbt == null) return ActionResult.PASS;
         if (!nbt.contains(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;

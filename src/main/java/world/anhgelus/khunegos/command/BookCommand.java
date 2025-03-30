@@ -33,7 +33,7 @@ public class BookCommand {
     }
 
     private static int giveBook(ServerPlayerEntity player, ServerPlayerEntity target) {
-        final var is = new ItemStack(Items.BOOK);
+        final var is = new ItemStack(Items.WRITTEN_BOOK);
         is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(target).getBookContent());
         player.giveOrDropStack(is);
         return Command.SINGLE_SUCCESS;

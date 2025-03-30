@@ -91,7 +91,7 @@ public class KhunegosPlayer {
             final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
             return nbt != null && nbt.contains(BOOK_KEY) && nbt.copyNbt().getBoolean(BOOK_KEY);
         })) return;
-        final var is = new ItemStack(Items.BOOK);
+        final var is = new ItemStack(Items.WRITTEN_BOOK);
         final var nbt = new NbtCompound();
         nbt.putBoolean(BOOK_KEY, true);
         is.set(DataComponentTypes.CUSTOM_NAME, Text.of("Khunegos"));
