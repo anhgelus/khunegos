@@ -108,7 +108,7 @@ public class PlayerListeners {
         ItemStack is;
         if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
         else return ActionResult.PASS;
-        if (!is.isOf(Items.NETHER_STAR)) return ActionResult.PASS;
+        if (!is.isOf(Items.NETHER_STAR)) return ActionResult.FAIL; // fail to prevent player to pick armor stand's thing
         final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
         if (nbt == null) return ActionResult.PASS;
         if (!nbt.contains(KhunegosPlayer.PLAYER_KEY)) return ActionResult.PASS;

@@ -1,10 +1,6 @@
 package world.anhgelus.khunegos.mixin;
 
 import com.mojang.datafixers.util.Either;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.decoration.ArmorStandEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.structure.StructureLiquidSettings;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.structure.StructureTemplateManager;
@@ -24,6 +20,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import world.anhgelus.khunegos.Khunegos;
 
 @Mixin(SinglePoolElement.class)
 public abstract class VillageGeneratorMixin {
@@ -54,20 +51,11 @@ public abstract class VillageGeneratorMixin {
         final var possibleLoc = this.location.left();
         if (possibleLoc.isEmpty()) return;
         final var identifier = possibleLoc.get();
-        if (!identifier.getPath().contains("town_centers/plains_meeting_point")) return;
+        if (identifier.getPath().contains("zombie")) return;
+        if (!identifier.getPath().contains("town_centers")) return;
         // it is the center of the village
-        final var armorStand = new ArmorStandEntity(world.toServerWorld(), pos.getX(), pos.getY(), pos.getZ());
         spawned = true;
-        // invulnerable, on ground, cannot move, without gravity, no base plate
-        armorStand.setInvulnerable(true);
-        armorStand.setHideBasePlate(true);
-        armorStand.setShowArms(true);
-        armorStand.setOnGround(true);
-        armorStand.setNoDrag(true);
-        armorStand.setNoGravity(true);
-        // give simple stuff
-        armorStand.equipStack(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
-        armorStand.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.ENCHANTED_GOLDEN_APPLE));
-        //TODO: define specific khunegos armor stand
+        Khunegos.LOGGER.info("saved");
+        Khunegos.spawnArmorStand(pos);
     }
 }
