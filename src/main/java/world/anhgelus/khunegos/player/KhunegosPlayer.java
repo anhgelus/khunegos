@@ -17,6 +17,7 @@ import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
+import world.anhgelus.khunegos.StateSaver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -183,6 +184,18 @@ public class KhunegosPlayer {
         @Nullable
         public static KhunegosPlayer getKhunegosPlayer(UUID uuid) {
             return players.get(uuid);
+        }
+
+        public static void loadPlayers(StateSaver state) {
+            state.players.forEach((uuid, data) -> {
+                players.computeIfAbsent(uuid, Manager::getKhunegosPlayer);
+            });
+        }
+
+        public static void savePlayers(StateSaver state) {
+            players.forEach((u, khunegosPlayer) -> {
+                state.players.put(u, khunegosPlayer.healthModifier);
+            });
         }
     }
 }
