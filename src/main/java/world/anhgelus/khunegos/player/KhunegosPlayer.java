@@ -28,7 +28,7 @@ public class KhunegosPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
     public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
     public static final String BOOK_KEY = Khunegos.BASE_KEY + "_book"; // is a khunegos book
-
+    private final UUID uuid;
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
     private float healthModifier = 0;
@@ -41,10 +41,11 @@ public class KhunegosPlayer {
 
     public KhunegosPlayer(ServerPlayerEntity player) {
         this.player = player;
+        this.uuid = player.getUuid();
     }
 
-    public KhunegosPlayer(ServerPlayerEntity player, float healthModifier) {
-        this.player = player;
+    public KhunegosPlayer(UUID uuid, float healthModifier) {
+        this.uuid = uuid;
         this.healthModifier = healthModifier;
     }
 
@@ -62,6 +63,7 @@ public class KhunegosPlayer {
     }
 
     public void onRespawn(ServerPlayerEntity newPlayer) {
+        if (!newPlayer.getUuid().equals(uuid)) throw new IllegalArgumentException("Player does not have the same UUID");
         this.player = newPlayer;
         updateHealth();
     }
@@ -187,9 +189,7 @@ public class KhunegosPlayer {
         }
 
         public static void loadPlayers(StateSaver state) {
-            state.players.forEach((uuid, data) -> {
-                players.computeIfAbsent(uuid, Manager::getKhunegosPlayer);
-            });
+            state.players.forEach((uuid, data) -> players.put(uuid, new KhunegosPlayer(uuid, data)));
         }
 
         public static void savePlayers(StateSaver state) {
