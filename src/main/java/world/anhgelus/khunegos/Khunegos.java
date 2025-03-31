@@ -12,13 +12,13 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.command.CommandHandler;
 import world.anhgelus.khunegos.listener.PlayerListeners;
+import world.anhgelus.khunegos.player.DeposeHeart;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -79,9 +79,7 @@ public class Khunegos implements ModInitializer {
                 armorStand.equipStack(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
                 armorStand.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHER_STAR));
                 // protect armor stand
-                final var nbt = new NbtCompound();
-                nbt.putBoolean(ARMOR_STAND_KEY, true);
-                armorStand.writeNbt(nbt);
+                ((DeposeHeart) armorStand).khunegos_makeDeposeHeart();
 
                 world.spawnEntity(armorStand);
                 toDelete.add(pos);

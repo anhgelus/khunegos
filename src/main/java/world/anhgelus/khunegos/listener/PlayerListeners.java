@@ -9,7 +9,6 @@ import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,6 +19,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
 import world.anhgelus.khunegos.Khunegos;
+import world.anhgelus.khunegos.player.DeposeHeart;
 import world.anhgelus.khunegos.player.KhunegosPlayer;
 import world.anhgelus.khunegos.player.KhunegosTask;
 
@@ -105,10 +105,8 @@ public class PlayerListeners {
     public static ActionResult clickOnEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (!(entity instanceof ArmorStandEntity armorStand)) return ActionResult.PASS;
         // check armor stand validity
-        final var armorNbt = new NbtCompound();
-        armorStand.readNbt(armorNbt);
-        if (!armorNbt.contains(Khunegos.ARMOR_STAND_KEY) || !armorNbt.getBoolean(Khunegos.ARMOR_STAND_KEY))
-            return ActionResult.PASS;
+        final var customStand = (DeposeHeart) armorStand;
+        if (customStand.khunegos_isDeposeHeart()) return ActionResult.PASS;
         // now, send FAIL to prevent player to pick armor stand's thing
         // check validity of nether star
         ItemStack is;
