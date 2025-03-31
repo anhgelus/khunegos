@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.command.CommandHandler;
 import world.anhgelus.khunegos.listener.PlayerListeners;
-import world.anhgelus.khunegos.player.DeposeHeart;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -78,9 +77,7 @@ public class Khunegos implements ModInitializer {
                 // give simple stuff
                 armorStand.equipStack(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
                 armorStand.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHER_STAR));
-                // protect armor stand
-                ((DeposeHeart) armorStand).khunegos_makeDeposeHeart();
-
+                // armor stand is protected by the item in its main hand
                 world.spawnEntity(armorStand);
                 toDelete.add(pos);
             });
