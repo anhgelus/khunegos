@@ -47,11 +47,9 @@ public class PlayerListeners {
         }
         logger.info("first not started, {}", playersConnected);
         if (playersConnected < 2) return;
-        logger.info("right amount");
         // create first khunegos
         KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
         firstStarted = true;
-        logger.info("task added");
     }
 
     public static void disconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {

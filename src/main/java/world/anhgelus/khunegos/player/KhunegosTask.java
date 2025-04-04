@@ -50,6 +50,13 @@ public class KhunegosTask {
         prey.giveBook();
     }
 
+    /**
+     * @return ticks before run
+     */
+    public long getTicksBeforeEnd() {
+        return task.getTickingBeforeRun();
+    }
+
     public Incoming onPreyKilled() {
         preyKilled = true;
         final var in = finish();
@@ -215,8 +222,8 @@ public class KhunegosTask {
         }
 
         private boolean validPlayer(KhunegosPlayer player, boolean hunter) {
-            return hunter ? player.getMaxHearts() < 15 && player.getTask() == null :
-                    player.getMaxHearts() > 5 && player.getTask() == null;
+            return hunter ? player.getMaxHearts() < 10 + Khunegos.MAX_RELATIVE_HEALTH && player.getTask() == null :
+                    player.getMaxHearts() > 10 + Khunegos.MIN_RELATIVE_HEALTH && player.getTask() == null;
         }
 
         public boolean isKhunegosTask() {
