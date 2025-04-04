@@ -40,7 +40,6 @@ public class KhunegosTask {
         task = new TickTask(() -> {
             final var next = finish();
             if (next != null) Manager.addTask(next);
-            Manager.removeTaskWithoutCancel(this);
         }, duration * 1000L);
         timer.timer_runTask(task);
 

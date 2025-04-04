@@ -140,7 +140,7 @@ public class KhunegosPlayer {
             final var role = getRole() == Role.HUNTER ? "hunter" : "prey";
             final var sb = new StringBuilder();
             sb.append("You are a ").append(role).append("\n\n");
-            sb.append("End in ").append(task.getTicksBeforeEnd() / (60 * 20)).append("minutes\n\n");
+            sb.append("End in ").append(task.getTicksBeforeEnd() / (60 * 20)).append(" minutes\n\n");
             if (getRole() == Role.HUNTER) {
                 sb.append(task.prey.getCoordsString());
             }
