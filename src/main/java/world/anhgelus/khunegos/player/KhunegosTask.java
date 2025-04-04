@@ -40,7 +40,7 @@ public class KhunegosTask {
         task = new TickTask(() -> {
             final var next = finish();
             if (next != null) Manager.addTask(next);
-            Manager.removeTask(this);
+            Manager.removeTaskWithoutCancel(this);
         }, duration * 1000L);
         timer.timer_runTask(task);
 
@@ -73,7 +73,10 @@ public class KhunegosTask {
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
+        Manager.removeTaskWithoutCancel(this);
+        // start new one
         if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
+        Khunegos.LOGGER.info("Cannot start a new incoming Khunegos task");
         return null;
     }
 
@@ -161,6 +164,11 @@ public class KhunegosTask {
             final var in = khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElse(null);
             if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
             removeTask(in);
+        }
+
+        private static void removeTaskWithoutCancel(KhunegosTask task) {
+            final var in = Manager.khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElseThrow();
+            Manager.khunegosTaskList.remove(in);
         }
     }
 

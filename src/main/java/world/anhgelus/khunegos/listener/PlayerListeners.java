@@ -77,7 +77,6 @@ public class PlayerListeners {
         khunegosPlayer.onDeath(task.hunter == getKhunegosPlayer(killer)); // checks if it's the right player
         // remove old task and add new planned
         KhunegosTask.Manager.addTask(task.onPreyKilled());
-        KhunegosTask.Manager.removeTask(task);
     }
 
     public static void afterRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
