@@ -125,9 +125,9 @@ public class KhunegosPlayer {
             rawContent.add(RawFilteredPair.of(Text.of("You are not in a Khunegos.")));
         } else {
             assert task != null; // is valid because role != none
-            final var role = getRole() == Role.HUNTER ? "hunter" : "prey";
+            final var role = getRole() == Role.HUNTER ? "§cHunter" : "§2Prey";
             final var sb = new StringBuilder();
-            sb.append("You are a ").append(role).append("\n\n");
+            sb.append("You are a §o§l").append(role).append("§r.\n\n");
             final var cal = Calendar.getInstance(Locale.FRANCE);
             final var minBeforeEnd = task.getTicksBeforeEnd() / (60 * 20);
             var endHour = (cal.get(Calendar.HOUR_OF_DAY) + minBeforeEnd / 60) % 24;
@@ -136,15 +136,15 @@ public class KhunegosPlayer {
                 endHour = (endHour + 1) % 64;
                 minuteEndHour %= 60;
             }
-            sb.append("End at ")
+            sb.append("End at §l")
                     .append(endHour)
                     .append(":")
                     .append(minuteEndHour)
-                    .append(" (")
+                    .append(" §r(")
                     .append(TimeZone.getDefault().getDisplayName().split("/")[1])
-                    .append(" timezone)")
+                    .append(" timezone).")
                     .append("\n\n");
-            sb.append("Use /coords to get your prey's coords");
+            sb.append("Use §l/coords§r to get your prey's coords");
             rawContent.add(RawFilteredPair.of(Text.of(sb.toString())));
         }
         return new WrittenBookContentComponent(
