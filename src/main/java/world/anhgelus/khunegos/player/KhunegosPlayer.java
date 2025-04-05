@@ -19,15 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
 import world.anhgelus.khunegos.StateSaver;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class KhunegosPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
     public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
-    public static final String BOOK_KEY = Khunegos.BASE_KEY + "_book"; // is a khunegos book
     private final UUID uuid;
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
@@ -90,16 +86,8 @@ public class KhunegosPlayer {
     }
 
     public void giveBook() {
-        // prevents giving same book
-        if (player.getInventory().contains(is -> {
-            final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
-            return nbt != null && nbt.contains(BOOK_KEY) && nbt.copyNbt().getBoolean(BOOK_KEY);
-        })) return;
         final var is = new ItemStack(Items.WRITTEN_BOOK);
-        final var nbt = new NbtCompound();
-        nbt.putBoolean(BOOK_KEY, true);
-        is.set(DataComponentTypes.CUSTOM_NAME, Text.of("Khunegos"));
-        is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+        is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getBookContent());
         player.giveOrDropStack(is);
     }
 
@@ -128,7 +116,7 @@ public class KhunegosPlayer {
 
     public String getCoordsString() {
         final var coords = getCoords();
-        return "x=" + coords.getX() + " y=" + coords.getY() + " z=" + coords.getZ();
+        return String.format("%d %d %d", coords.getX(), coords.getY(), coords.getZ());
     }
 
     public WrittenBookContentComponent getBookContent() {
@@ -137,18 +125,31 @@ public class KhunegosPlayer {
             rawContent.add(RawFilteredPair.of(Text.of("You are not in a Khunegos.")));
         } else {
             assert task != null; // is valid because role != none
-            final var role = getRole() == Role.HUNTER ? "hunter" : "prey";
+            final var role = getRole() == Role.HUNTER ? "§cHunter" : "§2Prey";
             final var sb = new StringBuilder();
-            sb.append("You are a ").append(role).append("\n\n");
-            sb.append("End in ").append(task.getTicksBeforeEnd() / (60 * 20)).append(" minutes\n\n");
-            if (getRole() == Role.HUNTER) {
-                sb.append(task.prey.getCoordsString());
+            sb.append("You are a §o§l").append(role).append("§r.\n\n");
+            final var cal = Calendar.getInstance(Locale.FRANCE);
+            final var minBeforeEnd = task.getTicksBeforeEnd() / (60 * 20);
+            var endHour = (cal.get(Calendar.HOUR_OF_DAY) + minBeforeEnd / 60) % 24;
+            var minuteEndHour = cal.get(Calendar.MINUTE) + minBeforeEnd;
+            while (minuteEndHour >= 60) {
+                endHour = (endHour + 1) % 64;
+                minuteEndHour %= 60;
             }
+            sb.append("End at §l")
+                    .append(endHour)
+                    .append(":")
+                    .append(minuteEndHour)
+                    .append(" §r(")
+                    .append(TimeZone.getDefault().getDisplayName().split("/")[1])
+                    .append(" timezone).")
+                    .append("\n\n");
+            sb.append("Use §l/coords§r to get your prey's coords");
             rawContent.add(RawFilteredPair.of(Text.of(sb.toString())));
         }
         return new WrittenBookContentComponent(
                 RawFilteredPair.of("Khunegos"),
-                player.getName().getString(),
+                "Khunegos",
                 0,
                 rawContent,
                 true // I don't know what this do
