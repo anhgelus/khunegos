@@ -121,7 +121,7 @@ public class KhunegosPlayer {
 
     public String getCoordsString() {
         final var coords = getCoords();
-        return "x=" + coords.getX() + " y=" + coords.getY() + " z=" + coords.getZ();
+        return String.format("%d %d %d", coords.getX(), coords.getY(), coords.getZ());
     }
 
     public WrittenBookContentComponent getBookContent() {
@@ -147,7 +147,9 @@ public class KhunegosPlayer {
                     .append(minuteEndHour)
                     .append(" (")
                     .append(TimeZone.getDefault().getDisplayName().split("/")[1])
-                    .append(" timezone)");
+                    .append(" timezone)")
+                    .append("\n\n");
+            sb.append("Use /coords to get your prey's coords");
             rawContent.add(RawFilteredPair.of(Text.of(sb.toString())));
         }
         return new WrittenBookContentComponent(

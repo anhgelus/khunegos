@@ -10,5 +10,6 @@ public class CommandHandler {
         BookCommand.bootstrap(dispatcher);
         TaskCommand.bootstrap(dispatcher);
         TimerCommand.bootstrap(dispatcher);
+        CoordsCommand.bootstrap(dispatcher);
     }
 }
