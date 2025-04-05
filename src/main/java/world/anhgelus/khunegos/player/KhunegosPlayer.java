@@ -24,7 +24,6 @@ import java.util.*;
 public class KhunegosPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
     public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
-    public static final String BOOK_KEY = Khunegos.BASE_KEY + "_book"; // is a khunegos book
     private final UUID uuid;
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
@@ -88,10 +87,6 @@ public class KhunegosPlayer {
 
     public void giveBook() {
         final var is = new ItemStack(Items.WRITTEN_BOOK);
-        final var nbt = new NbtCompound();
-        nbt.putBoolean(BOOK_KEY, true);
-        is.set(DataComponentTypes.CUSTOM_NAME, Text.of("Khunegos"));
-        is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
         is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getBookContent());
         player.giveOrDropStack(is);
     }

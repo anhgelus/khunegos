@@ -86,22 +86,6 @@ public class PlayerListeners {
         khunegosPlayer.onRespawn(newPlayer);
     }
 
-    public static ActionResult useItem(PlayerEntity player, World world, Hand hand) {
-        if (!(player instanceof ServerPlayerEntity serverPlayer)) return ActionResult.PASS;
-        // check validity of book
-        ItemStack is;
-        if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
-        else return ActionResult.PASS;
-        if (!is.isOf(Items.WRITTEN_BOOK)) return ActionResult.PASS;
-        final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
-        if (nbt == null) return ActionResult.PASS;
-        if (!nbt.contains(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;
-        if (!nbt.copyNbt().getBoolean(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;
-        // modify book content
-        is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(serverPlayer).getBookContent());
-        return ActionResult.SUCCESS;
-    }
-
     public static ActionResult clickOnEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
         if (!(entity instanceof ArmorStandEntity armorStand)) return ActionResult.PASS;
         // check armor stand validity

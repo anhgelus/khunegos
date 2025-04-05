@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
@@ -65,7 +64,6 @@ public class Khunegos implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DEATH.register(PlayerListeners::afterDeath);
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListeners::afterRespawn);
 
-        UseItemCallback.EVENT.register(PlayerListeners::useItem);
         UseEntityCallback.EVENT.register(PlayerListeners::clickOnEntity);
 
 
