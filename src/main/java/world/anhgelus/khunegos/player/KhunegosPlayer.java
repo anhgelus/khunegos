@@ -45,6 +45,7 @@ public class KhunegosPlayer {
     }
 
     public KhunegosPlayer(UUID uuid, float healthModifier) {
+        Khunegos.LOGGER.info("Creating KhunegosPlayer with health modifier");
         this.uuid = uuid;
         this.healthModifier = healthModifier;
     }
@@ -65,6 +66,11 @@ public class KhunegosPlayer {
     public void onRespawn(ServerPlayerEntity newPlayer) {
         if (!newPlayer.getUuid().equals(uuid)) throw new IllegalArgumentException("Player does not have the same UUID");
         this.player = newPlayer;
+        updateHealth();
+    }
+
+    public void onDeposeHeart() {
+        healthModifier += 2;
         updateHealth();
     }
 
@@ -89,7 +95,7 @@ public class KhunegosPlayer {
             final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
             return nbt != null && nbt.contains(BOOK_KEY) && nbt.copyNbt().getBoolean(BOOK_KEY);
         })) return;
-        final var is = new ItemStack(Items.BOOK);
+        final var is = new ItemStack(Items.WRITTEN_BOOK);
         final var nbt = new NbtCompound();
         nbt.putBoolean(BOOK_KEY, true);
         is.set(DataComponentTypes.CUSTOM_NAME, Text.of("Khunegos"));
@@ -130,20 +136,22 @@ public class KhunegosPlayer {
         if (role == Role.NONE) {
             rawContent.add(RawFilteredPair.of(Text.of("You are not in a Khunegos.")));
         } else {
+            assert task != null; // is valid because role != none
             final var role = getRole() == Role.HUNTER ? "hunter" : "prey";
-            rawContent.add(RawFilteredPair.of(Text.of("You are a " + role)));
+            final var sb = new StringBuilder();
+            sb.append("You are a ").append(role).append("\n\n");
+            sb.append("End in ").append(task.getTicksBeforeEnd() / (60 * 20)).append(" minutes\n\n");
             if (getRole() == Role.HUNTER) {
-                rawContent.add(RawFilteredPair.of(Text.of("")));
-                assert task != null; // is valid because role != none
-                rawContent.add(RawFilteredPair.of(Text.of(task.prey.getCoordsString())));
+                sb.append(task.prey.getCoordsString());
             }
+            rawContent.add(RawFilteredPair.of(Text.of(sb.toString())));
         }
         return new WrittenBookContentComponent(
                 RawFilteredPair.of("Khunegos"),
                 player.getName().getString(),
                 0,
                 rawContent,
-                false // I don't know what this do
+                true // I don't know what this do
         );
     }
 

@@ -40,7 +40,6 @@ public class KhunegosTask {
         task = new TickTask(() -> {
             final var next = finish();
             if (next != null) Manager.addTask(next);
-            Manager.removeTask(this);
         }, duration * 1000L);
         timer.timer_runTask(task);
 
@@ -48,6 +47,13 @@ public class KhunegosTask {
 
         hunter.giveBook();
         prey.giveBook();
+    }
+
+    /**
+     * @return ticks before run
+     */
+    public long getTicksBeforeEnd() {
+        return task.getTickingBeforeRun();
     }
 
     public Incoming onPreyKilled() {
@@ -66,7 +72,10 @@ public class KhunegosTask {
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
+        Manager.removeTaskWithoutCancel(this);
+        // start new one
         if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
+        Khunegos.LOGGER.info("Cannot start a new incoming Khunegos task");
         return null;
     }
 
@@ -155,6 +164,11 @@ public class KhunegosTask {
             if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
             removeTask(in);
         }
+
+        private static void removeTaskWithoutCancel(KhunegosTask task) {
+            final var in = Manager.khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElseThrow();
+            Manager.khunegosTaskList.remove(in);
+        }
     }
 
     /**
@@ -162,16 +176,18 @@ public class KhunegosTask {
      */
     public static class Incoming {
         public final TickTask delayTask;
-        public KhunegosTask task;
+        @Nullable
+        public KhunegosTask task = null;
 
         public Incoming(Random rand, MinecraftServer server, boolean first) {
-            if (!Manager.canServerStartsNewTask(server))
+            if (!Manager.canServerStartsNewTask(server) && !first)
                 throw new IllegalStateException("Cannot start a new Khunegos task");
             final var m = MathHelper.floor(5 * Khunegos.KHUNEGOS_BASE_DELAY);
             final var t = MathHelper.nextInt(rand, -m, m);
             // if first, delay is in [0, 5*alpha[, else is 20(alpha + t) where t is in [-5 alpha; 5 alpha]
-            final var delay = first ? (t + m) % m : MathHelper.floor(20 * (Khunegos.KHUNEGOS_BASE_DELAY + t));
-            this.delayTask = new TickTask(() -> {
+//            final var delay = first ? (t + m) % m : MathHelper.floor(20 * (Khunegos.KHUNEGOS_BASE_DELAY + t));
+            final var delay = 1;
+            delayTask = new TickTask(() -> {
                 final var players = new ArrayList<>(server.getPlayerManager().getPlayerList());
                 final var khunegosHunter = getRandomPlayer(players, rand, true);
                 if (khunegosHunter == null) {
@@ -200,21 +216,21 @@ public class KhunegosTask {
          */
         @Nullable
         private KhunegosPlayer getRandomPlayer(List<ServerPlayerEntity> players, Random rand, boolean isHunter) {
-            var p = players.get(MathHelper.nextInt(rand, players.size(), players.size() - 1));
+            var p = players.get(MathHelper.nextInt(rand, 0, players.size() - 1));
             players.remove(p);
             var pk = KhunegosPlayer.Manager.getKhunegosPlayer(p);
             while (players.size() >= 2 && !validPlayer(pk, isHunter)) {
-                p = players.get(MathHelper.nextInt(rand, players.size(), players.size() - 1));
+                p = players.get(MathHelper.nextInt(rand, 0, players.size() - 1));
                 players.remove(p);
                 pk = KhunegosPlayer.Manager.getKhunegosPlayer(p);
             }
             // verify validity
-            return validPlayer(pk, isHunter) && players.size() >= 2 ? pk : null;
+            return validPlayer(pk, isHunter) ? pk : null;
         }
 
         private boolean validPlayer(KhunegosPlayer player, boolean hunter) {
-            return hunter ? player.getMaxHearts() < 15 && player.getTask() == null :
-                    player.getMaxHearts() > 5 && player.getTask() == null;
+            return hunter ? player.getMaxHearts() < 10 + Khunegos.MAX_RELATIVE_HEALTH && player.getTask() == null :
+                    player.getMaxHearts() > 10 + Khunegos.MIN_RELATIVE_HEALTH && player.getTask() == null;
         }
 
         public boolean isKhunegosTask() {

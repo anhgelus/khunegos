@@ -2,8 +2,11 @@ package world.anhgelus.khunegos.listener;
 
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -12,6 +15,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
@@ -33,7 +37,7 @@ public class PlayerListeners {
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
         if (next == -1) next = 4 + MathHelper.nextInt(rand, -1, 1);
-        final var playersConnected = server.getPlayerManager().getPlayerList().size();
+        final var playersConnected = server.getPlayerManager().getPlayerList().size() + 1;
         if (firstStarted) {
             if (MathHelper.nextInt(rand, 0, 1) == 1) return;
             if (KhunegosTask.Manager.canServerStartsNewTask(server))
@@ -41,7 +45,8 @@ public class PlayerListeners {
             else logger.info("Cannot start a new task (not enough players)");
             return;
         }
-        if (playersConnected < next) return;
+        logger.info("first not started, {}", playersConnected);
+        if (playersConnected < 2) return;
         // create first khunegos
         KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
         firstStarted = true;
@@ -72,7 +77,6 @@ public class PlayerListeners {
         khunegosPlayer.onDeath(task.hunter == getKhunegosPlayer(killer)); // checks if it's the right player
         // remove old task and add new planned
         KhunegosTask.Manager.addTask(task.onPreyKilled());
-        KhunegosTask.Manager.removeTask(task);
     }
 
     public static void afterRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
@@ -88,13 +92,32 @@ public class PlayerListeners {
         ItemStack is;
         if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
         else return ActionResult.PASS;
-        if (!is.isOf(Items.BOOK)) return ActionResult.PASS;
+        if (!is.isOf(Items.WRITTEN_BOOK)) return ActionResult.PASS;
         final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
         if (nbt == null) return ActionResult.PASS;
         if (!nbt.contains(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;
         if (!nbt.copyNbt().getBoolean(KhunegosPlayer.BOOK_KEY)) return ActionResult.PASS;
         // modify book content
         is.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, getKhunegosPlayer(serverPlayer).getBookContent());
+        return ActionResult.SUCCESS;
+    }
+
+    public static ActionResult clickOnEntity(PlayerEntity player, World world, Hand hand, Entity entity, EntityHitResult hitResult) {
+        if (!(entity instanceof ArmorStandEntity armorStand)) return ActionResult.PASS;
+        // check armor stand validity
+        if (armorStand.getEquippedStack(EquipmentSlot.MAINHAND).getItem() != Items.NETHER_STAR)
+            return ActionResult.PASS;
+        // now, send FAIL to prevent player to pick armor stand's thing
+        // check validity of nether star
+        ItemStack is;
+        if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
+        else return ActionResult.FAIL;
+        if (!is.isOf(Items.NETHER_STAR)) return ActionResult.FAIL; // fail to prevent player to pick armor stand's thing
+        final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
+        if (nbt == null) return ActionResult.FAIL;
+        if (!nbt.contains(KhunegosPlayer.PLAYER_KEY)) return ActionResult.FAIL;
+        player.getInventory().removeOne(is);
+        getKhunegosPlayer((ServerPlayerEntity) player).onDeposeHeart();
         return ActionResult.SUCCESS;
     }
 }

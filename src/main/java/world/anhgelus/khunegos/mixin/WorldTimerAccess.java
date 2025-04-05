@@ -16,15 +16,19 @@ import java.util.function.BooleanSupplier;
 public class WorldTimerAccess implements TimerAccess {
     @Unique
     private final List<TickTask> tasks = new ArrayList<>();
+    @Unique
+    private final List<TickTask> toRun = new ArrayList<>();
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         tasks.stream().filter(TickTask::isRunning).forEach(TickTask::tick);
+        tasks.addAll(toRun);
+        toRun.clear();
     }
 
     @Override
     public void timer_runTask(TimerAccess.TickTask task) {
-        tasks.add(task);
+        toRun.add(task);
     }
 
     @Override
