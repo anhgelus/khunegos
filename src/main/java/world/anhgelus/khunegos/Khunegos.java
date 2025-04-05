@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.command.CommandHandler;
 import world.anhgelus.khunegos.listener.PlayerListeners;
+import world.anhgelus.khunegos.player.KhunegosPlayer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,6 +46,16 @@ public class Khunegos implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Khunegos");
+
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            final var state = StateSaver.getServerState(server);
+            KhunegosPlayer.Manager.loadPlayers(state);
+        });
+
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            final var state = StateSaver.getServerState(server);
+            KhunegosPlayer.Manager.savePlayers(state);
+        });
 
         CommandRegistrationCallback.EVENT.register(CommandHandler::bootstrap);
 
