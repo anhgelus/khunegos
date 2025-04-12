@@ -216,10 +216,11 @@ public class KhunegosTask {
          */
         @Nullable
         private KhunegosPlayer getRandomPlayer(List<ServerPlayerEntity> players, Random rand, boolean isHunter) {
+            if (players.isEmpty()) return null;
             var p = players.get(MathHelper.nextInt(rand, 0, players.size() - 1));
             players.remove(p);
             var pk = KhunegosPlayer.Manager.getKhunegosPlayer(p);
-            while (players.size() >= 2 && !validPlayer(pk, isHunter)) {
+            while (!players.isEmpty() && !validPlayer(pk, isHunter)) {
                 p = players.get(MathHelper.nextInt(rand, 0, players.size() - 1));
                 players.remove(p);
                 pk = KhunegosPlayer.Manager.getKhunegosPlayer(p);
