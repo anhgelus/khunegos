@@ -120,6 +120,10 @@ public class KhunegosTask {
         mannequin.remove(Entity.RemovalReason.KILLED);
     }
 
+    public void onServerStop() {
+        if (mannequin != null) mannequin.remove(Entity.RemovalReason.KILLED);
+    }
+
     public String toString() {
         return String.format(
                 "KhunegosTask{duration=%d, hunter=%s, prey=%s} (finished=%b, tick task=%s)",
@@ -196,6 +200,10 @@ public class KhunegosTask {
                     .filter(Incoming::isKhunegosTask)
                     .filter(in -> in.task.mannequin == armorStand)
                     .forEach(in -> addTask(in.task.onPreyKilled()));
+        }
+
+        public static void onServerStop() {
+            khunegosTaskList.stream().filter(Incoming::isKhunegosTask).forEach(in -> in.task.onServerStop());
         }
 
         private static void removeTaskWithoutCancel(KhunegosTask task) {

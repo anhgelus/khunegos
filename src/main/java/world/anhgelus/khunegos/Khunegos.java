@@ -55,6 +55,7 @@ public class Khunegos implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             final var state = StateSaver.getServerState(server);
             KhunegosPlayer.Manager.savePlayers(state);
+            KhunegosTask.Manager.onServerStop();
         });
 
         CommandRegistrationCallback.EVENT.register(CommandHandler::bootstrap);
