@@ -21,11 +21,14 @@ public class CoordsCommand {
                         source.sendFeedback(() -> Text.of("Your are not an hunter."), false);
                         return Command.SINGLE_SUCCESS;
                     }
+                    if (!khunegos.canUseCommandCoords()) {
+                        source.sendFeedback(() -> Text.of("You must wait before getting the new coords"), false);
+                        return Command.SINGLE_SUCCESS;
+                    }
                     final var task = khunegos.getTask();
                     assert task != null; // valid because role == hunter
-                    source.sendFeedback(() -> {
-                        return Text.of("Your prey's coords: " + task.prey.getCoordsString());
-                    }, false);
+                    source.sendFeedback(() -> Text.of("Your prey's coords: " + task.prey.getCoordsString()), false);
+                    khunegos.useCommandCoords();
                     return Command.SINGLE_SUCCESS;
                 });
 

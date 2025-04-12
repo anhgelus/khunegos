@@ -18,16 +18,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
 import world.anhgelus.khunegos.StateSaver;
+import world.anhgelus.khunegos.timer.TickTask;
+import world.anhgelus.khunegos.timer.TimerAccess;
 
 import java.util.*;
 
 public class KhunegosPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
     public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
+    public static final int DELAY_BETWEEN_COORDS_COMMAND = 30;
     private final UUID uuid;
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
     private float healthModifier = 0;
+    private boolean commandCoords = true;
     /**
      * Is null if {@link #role} == Role.NONE.
      * If not, throw an {@link IllegalStateException}
@@ -117,6 +121,17 @@ public class KhunegosPlayer {
     public String getCoordsString() {
         final var coords = getCoords();
         return String.format("%d %d %d", coords.getX(), coords.getY(), coords.getZ());
+    }
+
+    public boolean canUseCommandCoords() {
+        return this.commandCoords;
+    }
+
+    public void useCommandCoords() {
+        if (!commandCoords) throw new IllegalStateException("Cannot use command coords");
+        commandCoords = false;
+        final var timer = TimerAccess.getTimerFromOverworld(player.server);
+        timer.timer_runTask(new TickTask(() -> commandCoords = true, DELAY_BETWEEN_COORDS_COMMAND * 1000L));
     }
 
     public WrittenBookContentComponent getBookContent() {
