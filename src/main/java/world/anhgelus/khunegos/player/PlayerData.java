@@ -39,4 +39,8 @@ public class PlayerData {
     public NbtCompound save() {
         return save(new NbtCompound());
     }
+
+    public String toString() {
+        return String.format("PlayerData{health modifier=%s, must clear=%s}", healthModifier, mustClear);
+    }
 }

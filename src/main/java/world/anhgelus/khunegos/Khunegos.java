@@ -61,7 +61,6 @@ public class Khunegos implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(CommandHandler::bootstrap);
 
         ServerPlayConnectionEvents.JOIN.register(PlayerListeners::join);
-//        ServerPlayConnectionEvents.DISCONNECT.register(PlayerListeners::disconnect);
 
         ServerLivingEntityEvents.AFTER_DEATH.register(PlayerListeners::afterDeath);
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListeners::afterRespawn);

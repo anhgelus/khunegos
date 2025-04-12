@@ -22,9 +22,8 @@ public class StateSaver extends PersistentState {
     public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         final var state = new StateSaver();
 
-        final var playersNbt = tag.getCompound("players");
-        playersNbt.getKeys().forEach(key -> {
-            final var compound = playersNbt.getCompound(key);
+        tag.getKeys().forEach(key -> {
+            final var compound = tag.getCompound(key);
             state.players.put(UUID.fromString(key), PlayerData.from(compound));
         });
 
@@ -53,9 +52,8 @@ public class StateSaver extends PersistentState {
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        final var playersNbt = new NbtCompound();
-        players.forEach((uuid, h) -> {
-            playersNbt.put(uuid.toString(), h.save());
+        players.forEach((uuid, d) -> {
+            nbt.put(uuid.toString(), d.save());
         });
 
         return nbt;

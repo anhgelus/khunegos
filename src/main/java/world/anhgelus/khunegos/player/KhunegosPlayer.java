@@ -5,7 +5,6 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -67,10 +66,7 @@ public class KhunegosPlayer {
         if (!newPlayer.getUuid().equals(uuid)) throw new IllegalArgumentException("Player does not have the same UUID");
         this.player = newPlayer;
         updateHealth();
-        if (mustClear) {
-            player.getInventory().clear();
-            player.onDeath(player.getDamageSources().create(DamageTypes.GENERIC_KILL));
-        }
+        if (mustClear) player.getInventory().clear();
         mustClear = false;
     }
 
