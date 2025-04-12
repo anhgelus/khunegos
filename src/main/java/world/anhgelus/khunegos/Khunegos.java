@@ -61,7 +61,7 @@ public class Khunegos implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(CommandHandler::bootstrap);
 
         ServerPlayConnectionEvents.JOIN.register(PlayerListeners::join);
-        ServerPlayConnectionEvents.DISCONNECT.register(PlayerListeners::disconnect);
+//        ServerPlayConnectionEvents.DISCONNECT.register(PlayerListeners::disconnect);
 
         ServerLivingEntityEvents.AFTER_DEATH.register(PlayerListeners::afterDeath);
         ServerPlayerEvents.AFTER_RESPAWN.register(PlayerListeners::afterRespawn);
@@ -94,10 +94,6 @@ public class Khunegos implements ModInitializer {
                 toDelete.add(pos);
             });
             toDelete.forEach(armorStandsToSpawn::remove);
-        });
-
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, world) -> {
-            if (entity instanceof ArmorStandEntity armorStand) KhunegosTask.Manager.onArmorStandKilled(armorStand);
         });
     }
 }

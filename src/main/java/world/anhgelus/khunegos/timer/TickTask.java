@@ -73,14 +73,9 @@ public class TickTask implements TimerAccess.TickTask {
     }
 
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("TickTask{")
-                .append("delay=").append(ticksDelay)
-                .append(", repeat=").append(ticksRepeat)
-                .append("} (")
-                .append(", before run=").append(getTickingBeforeRun())
-                .append(", cancelled=").append(cancelled)
-                .append(")");
-        return sb.toString();
+        return String.format(
+                "TickTask{delay=%d, repeat=%d} (before run=%s, cancelled=%b)",
+                ticksDelay, ticksRepeat, getTickingBeforeRun(), cancelled
+        );
     }
 }

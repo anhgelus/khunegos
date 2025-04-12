@@ -5,6 +5,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -79,16 +80,23 @@ public class KhunegosTask {
             Khunegos.LOGGER.warn("Khunegos already finished");
             return null;
         }
-        if (mannequin != null) {
-            prey.getInventory().dropAll(); // may throw a null pointer, must be tested after a run of the GC
-        }
+        if (mannequin != null) prey.getInventory().dropAll();
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
         Manager.removeTaskWithoutCancel(this);
+        if (mannequin != null) {
+            // drop heart
+            final var is = KhunegosPlayer.Manager.getHeart(prey);
+            final var pos = mannequin.getBlockPos();
+            final var world = mannequin.getWorld();
+            final var entity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is);
+            entity.setPickupDelay(40);
+            world.spawnEntity(entity);
+        }
         // start new one
         if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
-        Khunegos.LOGGER.info("Cannot start a new incoming Khunegos task");
+        if (mannequin != null) Khunegos.LOGGER.info("Cannot start a new incoming Khunegos task");
         return null;
     }
 
@@ -163,7 +171,6 @@ public class KhunegosTask {
             if (!removeRandomTask(server.getOverworld().getRandom())) {
                 Khunegos.LOGGER.warn("Failed to remove a random task");
             }
-            ;
         }
 
         public static boolean canServerStartsNewTask(MinecraftServer server) {
@@ -177,6 +184,7 @@ public class KhunegosTask {
         }
 
         public static void addTask(Incoming incoming) {
+            if (incoming == null) return;
             khunegosTaskList.add(incoming);
         }
 
@@ -202,11 +210,12 @@ public class KhunegosTask {
         public static void onArmorStandKilled(ArmorStandEntity armorStand) {
             if (!armorStand.hasCustomName() || armorStand.shouldShowBasePlate() || !armorStand.shouldShowArms() || !armorStand.hasNoGravity())
                 return;
-            khunegosTaskList
+            final var found = khunegosTaskList
                     .stream()
                     .filter(Incoming::isKhunegosTask)
                     .filter(in -> in.getTask().orElseThrow().mannequin == armorStand)
-                    .forEach(in -> addTask(in.getTask().orElseThrow().onPreyKilled()));
+                    .findFirst();
+            found.ifPresent(i -> addTask(i.getTask().orElseThrow().onPreyKilled()));
         }
 
         public static void onServerStop() {

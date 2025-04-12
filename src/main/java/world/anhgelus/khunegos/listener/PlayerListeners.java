@@ -63,7 +63,10 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(false);
         final var role = khunegosPlayer.getRole();
-        if (role == KhunegosPlayer.Role.NONE) KhunegosTask.Manager.updateIncomingTasks(server);
+        if (role == KhunegosPlayer.Role.NONE) {
+            KhunegosTask.Manager.updateIncomingTasks(server);
+            return;
+        }
         final var task = khunegosPlayer.getTask().orElseThrow();
         if (role == KhunegosPlayer.Role.PREY) task.onPreyDisconnection();
     }

@@ -5,6 +5,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -42,6 +43,8 @@ public class KhunegosPlayer {
     private KhunegosTask task = null;
     private boolean connected = false;
     private boolean mustClear = false;
+    @Nullable
+    private PlayerInventory inv = null;
 
     public KhunegosPlayer(ServerPlayerEntity player) {
         this.player = player;
@@ -57,22 +60,17 @@ public class KhunegosPlayer {
 
     public void onDeath(boolean killedByPlayer) {
         if (!killedByPlayer || role != Role.PREY) return;
-        // save uuid in nbt
-        final var nbt = new NbtCompound();
-        nbt.putUuid(PLAYER_KEY, player.getUuid());
-        // create itemstack
-        final var is = new ItemStack(Items.NETHER_STAR);
-        is.set(DataComponentTypes.CUSTOM_NAME, player.getName());
-        is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
-        // drop
-        player.dropItem(is, true, false);
+        player.dropItem(Manager.getHeart(player), true, false);
     }
 
     public void onRespawn(ServerPlayerEntity newPlayer) {
         if (!newPlayer.getUuid().equals(uuid)) throw new IllegalArgumentException("Player does not have the same UUID");
         this.player = newPlayer;
         updateHealth();
-        if (mustClear) player.getInventory().clear();
+        if (mustClear) {
+            player.getInventory().clear();
+            player.onDeath(player.getDamageSources().create(DamageTypes.GENERIC_KILL));
+        }
         mustClear = false;
     }
 
@@ -99,6 +97,8 @@ public class KhunegosPlayer {
 
     public void setConnected(boolean connected) {
         this.connected = connected;
+        if (connected) inv = null;
+        else inv = player.getInventory();
     }
 
     public void giveBook() {
@@ -148,7 +148,7 @@ public class KhunegosPlayer {
     }
 
     public PlayerInventory getInventory() {
-        return player.getInventory();
+        return inv != null ? inv : player.getInventory();
     }
 
     public float getHealthModifier() {
@@ -248,6 +248,19 @@ public class KhunegosPlayer {
 
         public static void savePlayers(StateSaver state) {
             players.forEach((u, player) -> state.players.put(u, PlayerData.from(player)));
+        }
+
+        public static ItemStack getHeart(ServerPlayerEntity player) {
+            final var nbt = new NbtCompound();
+            nbt.putUuid(PLAYER_KEY, player.getUuid());
+            final var is = new ItemStack(Items.NETHER_STAR);
+            is.set(DataComponentTypes.CUSTOM_NAME, player.getName());
+            is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+            return is;
+        }
+
+        public static ItemStack getHeart(KhunegosPlayer player) {
+            return getHeart(player.player);
         }
     }
 }
