@@ -192,7 +192,7 @@ public class KhunegosPlayer {
                     .append(":")
                     .append(minuteEndHour)
                     .append(" §r(")
-                    .append(TimeZone.getDefault().getDisplayName().split("/")[1])
+                    .append(TimeZone.getDefault().getDisplayName())
                     .append(" timezone).")
                     .append("\n\n");
             sb.append("Use §l/coords§r to get your prey's coords");
