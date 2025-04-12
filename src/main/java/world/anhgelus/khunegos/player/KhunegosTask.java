@@ -167,7 +167,13 @@ public class KhunegosTask {
         }
 
         public static boolean canServerStartsNewTask(MinecraftServer server) {
-            return server.getPlayerManager().getPlayerList().size() - 2 >= KhunegosTask.Manager.getTasks().size() / 2;
+            return canServerStartsNewTask(server, false);
+        }
+
+        public static boolean canServerStartsNewTask(MinecraftServer server, boolean bl) {
+            var size = server.getPlayerManager().getPlayerList().size();
+            if (bl) size++;
+            return size - 2 >= KhunegosTask.Manager.getTasks().size() / 2;
         }
 
         public static void addTask(Incoming incoming) {

@@ -46,7 +46,7 @@ public class PlayerListeners {
         final var playersConnected = server.getPlayerManager().getPlayerList().size() + 1;
         if (firstStarted) {
             if (MathHelper.nextInt(rand, 0, 1) == 1) return;
-            if (KhunegosTask.Manager.canServerStartsNewTask(server))
+            if (KhunegosTask.Manager.canServerStartsNewTask(server, true))
                 KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, false));
             else logger.info("Cannot start a new task (not enough players)");
             return;
