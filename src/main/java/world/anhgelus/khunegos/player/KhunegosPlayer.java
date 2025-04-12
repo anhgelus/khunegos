@@ -5,6 +5,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -14,6 +15,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
@@ -38,6 +40,8 @@ public class KhunegosPlayer {
      */
     @Nullable
     private KhunegosTask task = null;
+    private boolean connected = false;
+    private boolean mustClear = false;
 
     public KhunegosPlayer(ServerPlayerEntity player) {
         this.player = player;
@@ -67,6 +71,8 @@ public class KhunegosPlayer {
         if (!newPlayer.getUuid().equals(uuid)) throw new IllegalArgumentException("Player does not have the same UUID");
         this.player = newPlayer;
         updateHealth();
+        if (mustClear) player.getInventory().clear();
+        mustClear = false;
     }
 
     public void onDeposeHeart() {
@@ -83,10 +89,15 @@ public class KhunegosPlayer {
     public void taskFinished(boolean success) {
         if (!success) {
             healthModifier -= 2;
-            updateHealth();
+            mustClear = !connected && role == Role.PREY;
+            if (connected) updateHealth();
         }
         this.task = null;
         role = Role.NONE;
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
 
     public void giveBook() {
@@ -118,9 +129,25 @@ public class KhunegosPlayer {
         return player.getBlockPos();
     }
 
+    public World getWorld() {
+        return player.getWorld();
+    }
+
     public String getCoordsString() {
         final var coords = getCoords();
         return String.format("%d %d %d", coords.getX(), coords.getY(), coords.getZ());
+    }
+
+    public Text getName() {
+        return player.getName();
+    }
+
+    public String getNameString() {
+        return getName().getString();
+    }
+
+    public PlayerInventory getInventory() {
+        return player.getInventory();
     }
 
     public boolean canUseCommandCoords() {

@@ -33,6 +33,7 @@ public class PlayerListeners {
 
     public static void join(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
+        khunegosPlayer.setConnected(true);
         khunegosPlayer.onRespawn(handler.player);
         if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) {
             final var task = khunegosPlayer.getTask();
@@ -61,6 +62,7 @@ public class PlayerListeners {
 
     public static void disconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
+        khunegosPlayer.setConnected(false);
         final var role = khunegosPlayer.getRole();
         if (role == KhunegosPlayer.Role.NONE) KhunegosTask.Manager.updateIncomingTasks(server);
         final var task = khunegosPlayer.getTask();

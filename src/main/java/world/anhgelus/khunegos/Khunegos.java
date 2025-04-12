@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.command.CommandHandler;
 import world.anhgelus.khunegos.listener.PlayerListeners;
 import world.anhgelus.khunegos.player.KhunegosPlayer;
+import world.anhgelus.khunegos.player.KhunegosTask;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -92,6 +93,10 @@ public class Khunegos implements ModInitializer {
                 toDelete.add(pos);
             });
             toDelete.forEach(armorStandsToSpawn::remove);
+        });
+
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, world) -> {
+            if (entity instanceof ArmorStandEntity armorStand) KhunegosTask.Manager.onArmorStandKilled(armorStand);
         });
     }
 }
