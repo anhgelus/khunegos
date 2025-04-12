@@ -52,8 +52,8 @@ public class PlayerListeners {
             return;
         }
         logger.info("first not started, {}", playersConnected);
-//        if (playersConnected < next) return;
-        if (playersConnected < 2) return;
+        if (playersConnected < next) return;
+//        if (playersConnected < 2) return;
         // create first khunegos
         KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
         firstStarted = true;

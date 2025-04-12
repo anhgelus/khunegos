@@ -242,8 +242,8 @@ public class KhunegosTask {
             final var m = MathHelper.floor(5 * Khunegos.KHUNEGOS_BASE_DELAY);
             final var t = MathHelper.nextInt(rand, -m, m);
             // if first, delay is in [0, 5*alpha[, else is 20(alpha + t) where t is in [-5 alpha; 5 alpha]
-//            final var delay = first ? (t + m) % m : MathHelper.floor(20 * (Khunegos.KHUNEGOS_BASE_DELAY + t));
-            final var delay = 1;
+            final var delay = first ? (t + m) % m : MathHelper.floor(20 * (Khunegos.KHUNEGOS_BASE_DELAY + t));
+//            final var delay = 1;
             delayTask = new TickTask(() -> {
                 final var players = new ArrayList<>(server.getPlayerManager().getPlayerList());
                 final var khunegosHunter = getRandomPlayer(players, rand, true);
