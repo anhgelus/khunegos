@@ -5,6 +5,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
+import world.anhgelus.khunegos.player.PlayerData;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,15 +17,14 @@ public class StateSaver extends PersistentState {
             StateSaver::createFromNbt,
             null
     );
-    public Map<UUID, Float> players = new HashMap<>();
+    public Map<UUID, PlayerData> players = new HashMap<>();
 
     public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         final var state = new StateSaver();
 
-        final var playersNbt = tag.getCompound("players");
-        playersNbt.getKeys().forEach(key -> {
-            final var compound = playersNbt.getCompound(key);
-            state.players.put(UUID.fromString(key), compound.getFloat("health"));
+        tag.getKeys().forEach(key -> {
+            final var compound = tag.getCompound(key);
+            state.players.put(UUID.fromString(key), PlayerData.from(compound));
         });
 
         return state;
@@ -41,24 +41,19 @@ public class StateSaver extends PersistentState {
         return state;
     }
 
-    public static float getPlayerState(ServerPlayerEntity player) {
+    public static PlayerData getPlayerState(ServerPlayerEntity player) {
         return getPlayerState(player.server, player.getUuid());
     }
 
-    public static float getPlayerState(MinecraftServer server, UUID uuid) {
+    public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
         final var state = getServerState(server);
-        return state.players.computeIfAbsent(uuid, u -> 0f);
+        return state.players.computeIfAbsent(uuid, u -> PlayerData.DEFAULT);
     }
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        final var playersNbt = new NbtCompound();
-        players.forEach((uuid, h) -> {
-            NbtCompound playerNbt = new NbtCompound();
-
-            playerNbt.putFloat("health", h);
-
-            playersNbt.put(uuid.toString(), playerNbt);
+        players.forEach((uuid, d) -> {
+            nbt.put(uuid.toString(), d.save());
         });
 
         return nbt;

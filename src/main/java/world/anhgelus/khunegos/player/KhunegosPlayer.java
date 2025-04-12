@@ -5,6 +5,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -14,6 +15,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
@@ -38,35 +40,34 @@ public class KhunegosPlayer {
      */
     @Nullable
     private KhunegosTask task = null;
+    private boolean connected = false;
+    private boolean mustClear = false;
+    @Nullable
+    private PlayerInventory inv = null;
 
     public KhunegosPlayer(ServerPlayerEntity player) {
         this.player = player;
         this.uuid = player.getUuid();
     }
 
-    public KhunegosPlayer(UUID uuid, float healthModifier) {
+    public KhunegosPlayer(UUID uuid, PlayerData data) {
         Khunegos.LOGGER.info("Creating KhunegosPlayer with health modifier");
         this.uuid = uuid;
-        this.healthModifier = healthModifier;
+        this.healthModifier = data.healthModifier;
+        this.mustClear = data.mustClear;
     }
 
     public void onDeath(boolean killedByPlayer) {
         if (!killedByPlayer || role != Role.PREY) return;
-        // save uuid in nbt
-        final var nbt = new NbtCompound();
-        nbt.putUuid(PLAYER_KEY, player.getUuid());
-        // create itemstack
-        final var is = new ItemStack(Items.NETHER_STAR);
-        is.set(DataComponentTypes.CUSTOM_NAME, player.getName());
-        is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
-        // drop
-        player.dropItem(is, true, false);
+        player.dropItem(Manager.getHeart(player), true, false);
     }
 
     public void onRespawn(ServerPlayerEntity newPlayer) {
         if (!newPlayer.getUuid().equals(uuid)) throw new IllegalArgumentException("Player does not have the same UUID");
         this.player = newPlayer;
         updateHealth();
+        if (mustClear) player.getInventory().clear();
+        mustClear = false;
     }
 
     public void onDeposeHeart() {
@@ -83,10 +84,17 @@ public class KhunegosPlayer {
     public void taskFinished(boolean success) {
         if (!success) {
             healthModifier -= 2;
-            updateHealth();
+            mustClear = !connected && role == Role.PREY;
+            if (connected) updateHealth();
         }
         this.task = null;
         role = Role.NONE;
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
+        if (connected) inv = null;
+        else inv = player.getInventory();
     }
 
     public void giveBook() {
@@ -101,9 +109,9 @@ public class KhunegosPlayer {
      * @return Current task
      * @throws IllegalStateException if task == null and if {@link Role} is not none
      */
-    public @Nullable KhunegosTask getTask() {
+    public Optional<KhunegosTask> getTask() {
         if (task == null && role != Role.NONE) throw new IllegalStateException("No task assigned to KhunegosPlayer");
-        return task;
+        return task == null ? Optional.empty() : Optional.of(task);
     }
 
     public Role getRole() {
@@ -118,9 +126,33 @@ public class KhunegosPlayer {
         return player.getBlockPos();
     }
 
+    public World getWorld() {
+        return player.getWorld();
+    }
+
     public String getCoordsString() {
         final var coords = getCoords();
         return String.format("%d %d %d", coords.getX(), coords.getY(), coords.getZ());
+    }
+
+    public Text getName() {
+        return player.getName();
+    }
+
+    public String getNameString() {
+        return getName().getString();
+    }
+
+    public PlayerInventory getInventory() {
+        return inv != null ? inv : player.getInventory();
+    }
+
+    public float getHealthModifier() {
+        return healthModifier;
+    }
+
+    public boolean isMustClear() {
+        return mustClear;
     }
 
     public boolean canUseCommandCoords() {
@@ -156,7 +188,7 @@ public class KhunegosPlayer {
                     .append(":")
                     .append(minuteEndHour)
                     .append(" §r(")
-                    .append(TimeZone.getDefault().getDisplayName().split("/")[1])
+                    .append(TimeZone.getDefault().getDisplayName())
                     .append(" timezone).")
                     .append("\n\n");
             sb.append("Use §l/coords§r to get your prey's coords");
@@ -185,13 +217,7 @@ public class KhunegosPlayer {
     }
 
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("KhunegosPlayer{")
-                .append("role=").append(role)
-                .append(", player=").append(player)
-                .append(", task=").append(task)
-                .append("}").append(role);
-        return sb.toString();
+        return String.format("KhunegosPlayer{role=%s; player=%s; task=%s}", role.toString(), player.toString(), task.toString());
     }
 
     public enum Role {
@@ -217,9 +243,20 @@ public class KhunegosPlayer {
         }
 
         public static void savePlayers(StateSaver state) {
-            players.forEach((u, khunegosPlayer) -> {
-                state.players.put(u, khunegosPlayer.healthModifier);
-            });
+            players.forEach((u, player) -> state.players.put(u, PlayerData.from(player)));
+        }
+
+        public static ItemStack getHeart(ServerPlayerEntity player) {
+            final var nbt = new NbtCompound();
+            nbt.putUuid(PLAYER_KEY, player.getUuid());
+            final var is = new ItemStack(Items.NETHER_STAR);
+            is.set(DataComponentTypes.CUSTOM_NAME, player.getName());
+            is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+            return is;
+        }
+
+        public static ItemStack getHeart(KhunegosPlayer player) {
+            return getHeart(player.player);
         }
     }
 }

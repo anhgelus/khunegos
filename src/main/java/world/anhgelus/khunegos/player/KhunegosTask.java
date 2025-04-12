@@ -1,5 +1,14 @@
 package world.anhgelus.khunegos.player;
 
+import com.mojang.authlib.GameProfile;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ProfileComponent;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.decoration.ArmorStandEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -12,6 +21,7 @@ import world.anhgelus.khunegos.timer.TimerAccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +35,7 @@ public class KhunegosTask {
     private final long duration;
     private boolean preyKilled = false;
     private boolean finished = false;
+    private ArmorStandEntity mannequin;
 
     private KhunegosTask(MinecraftServer server, KhunegosPlayer hunter, KhunegosPlayer prey) {
         this.hunter = hunter;
@@ -69,13 +80,23 @@ public class KhunegosTask {
             Khunegos.LOGGER.warn("Khunegos already finished");
             return null;
         }
+        if (mannequin != null) prey.getInventory().dropAll();
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
         Manager.removeTaskWithoutCancel(this);
+        if (mannequin != null) {
+            // drop heart
+            final var is = KhunegosPlayer.Manager.getHeart(prey);
+            final var pos = mannequin.getBlockPos();
+            final var world = mannequin.getWorld();
+            final var entity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is);
+            entity.setPickupDelay(40);
+            world.spawnEntity(entity);
+        }
         // start new one
         if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
-        Khunegos.LOGGER.info("Cannot start a new incoming Khunegos task");
+        if (mannequin != null) Khunegos.LOGGER.info("Cannot start a new incoming Khunegos task");
         return null;
     }
 
@@ -84,11 +105,32 @@ public class KhunegosTask {
     }
 
     public void onPreyDisconnection() {
-        //TODO: spawn armor stand representing player with same health
+        final var head = new ItemStack(Items.PLAYER_HEAD);
+        head.set(DataComponentTypes.PROFILE, new ProfileComponent(new GameProfile(prey.getUuid(), prey.getNameString())));
+        final var world = prey.getWorld();
+        final var x = prey.getCoords().getX();
+        final var y = prey.getCoords().getY();
+        final var z = prey.getCoords().getZ();
+        mannequin = new ArmorStandEntity(world, x, y, z);
+        mannequin.setCustomName(prey.getName());
+        mannequin.setCustomNameVisible(true);
+        mannequin.setHideBasePlate(true);
+        mannequin.setShowArms(true);
+        mannequin.setNoGravity(true);
+        mannequin.equipStack(EquipmentSlot.HEAD, head);
+        world.spawnEntity(mannequin);
     }
 
     public void onPreyReconnection() {
-        //TODO: remove armor stand and update their health
+        if (mannequin == null) {
+            Khunegos.LOGGER.warn("Mannequin is null");
+            return;
+        }
+        mannequin.remove(Entity.RemovalReason.KILLED);
+    }
+
+    public void onServerStop() {
+        if (mannequin != null) mannequin.remove(Entity.RemovalReason.KILLED);
     }
 
     public String toString() {
@@ -129,14 +171,20 @@ public class KhunegosTask {
             if (!removeRandomTask(server.getOverworld().getRandom())) {
                 Khunegos.LOGGER.warn("Failed to remove a random task");
             }
-            ;
         }
 
         public static boolean canServerStartsNewTask(MinecraftServer server) {
-            return server.getPlayerManager().getPlayerList().size() - 2 >= KhunegosTask.Manager.getTasks().size() / 2;
+            return canServerStartsNewTask(server, false);
+        }
+
+        public static boolean canServerStartsNewTask(MinecraftServer server, boolean bl) {
+            var size = server.getPlayerManager().getPlayerList().size();
+            if (bl) size++;
+            return size - 2 >= KhunegosTask.Manager.getTasks().size() / 2;
         }
 
         public static void addTask(Incoming incoming) {
+            if (incoming == null) return;
             khunegosTaskList.add(incoming);
         }
 
@@ -154,13 +202,28 @@ public class KhunegosTask {
          * @throws IllegalArgumentException if {@link Incoming#isKhunegosTask()} is true for the given task
          */
         public static void removeTask(KhunegosTask task) {
-            final var in = khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElse(null);
+            final var in = khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElse(null);
             if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
             removeTask(in);
         }
 
+        public static void onArmorStandKilled(ArmorStandEntity armorStand) {
+            if (!armorStand.hasCustomName() || armorStand.shouldShowBasePlate() || !armorStand.shouldShowArms() || !armorStand.hasNoGravity())
+                return;
+            final var found = khunegosTaskList
+                    .stream()
+                    .filter(Incoming::isKhunegosTask)
+                    .filter(in -> in.getTask().orElseThrow().mannequin == armorStand)
+                    .findFirst();
+            found.ifPresent(i -> addTask(i.getTask().orElseThrow().onPreyKilled()));
+        }
+
+        public static void onServerStop() {
+            khunegosTaskList.stream().filter(Incoming::isKhunegosTask).forEach(in -> in.getTask().orElseThrow().onServerStop());
+        }
+
         private static void removeTaskWithoutCancel(KhunegosTask task) {
-            final var in = Manager.khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElseThrow();
+            final var in = Manager.khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElseThrow();
             Manager.khunegosTaskList.remove(in);
         }
     }
@@ -171,7 +234,7 @@ public class KhunegosTask {
     public static class Incoming {
         public final TickTask delayTask;
         @Nullable
-        public KhunegosTask task = null;
+        private KhunegosTask task = null;
 
         public Incoming(Random rand, MinecraftServer server, boolean first) {
             if (!Manager.canServerStartsNewTask(server) && !first)
@@ -224,8 +287,8 @@ public class KhunegosTask {
         }
 
         private boolean validPlayer(KhunegosPlayer player, boolean hunter) {
-            return hunter ? player.getMaxHearts() < 10 + Khunegos.MAX_RELATIVE_HEALTH && player.getTask() == null :
-                    player.getMaxHearts() > 10 + Khunegos.MIN_RELATIVE_HEALTH && player.getTask() == null;
+            return hunter ? player.getMaxHearts() < 10 + Khunegos.MAX_RELATIVE_HEALTH && player.getTask().isEmpty() :
+                    player.getMaxHearts() > 10 + Khunegos.MIN_RELATIVE_HEALTH && player.getTask().isEmpty();
         }
 
         public boolean isKhunegosTask() {
@@ -233,7 +296,11 @@ public class KhunegosTask {
                 Khunegos.LOGGER.error("Task in incoming is null");
                 return false;
             }
-            return !delayTask.isRunning() && !task.isFinished();
+            return !delayTask.isRunning() && !getTask().orElseThrow().isFinished();
+        }
+
+        public Optional<KhunegosTask> getTask() {
+            return task == null ? Optional.empty() : Optional.of(task);
         }
 
         /**
