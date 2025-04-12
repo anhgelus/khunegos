@@ -28,8 +28,8 @@ public class Khunegos implements ModInitializer {
     public static final String MOD_ID = "khunegos";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final float KHUNEGOS_DURATION = 1f; // in day(s)
-    public static final float KHUNEGOS_BASE_DELAY = 1f; // in day(s)
+    public static final float KHUNEGOS_DURATION = 2f; // in day(s)
+    public static final float KHUNEGOS_BASE_DELAY = 1.5f; // in day(s)
     public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
     public static final String BASE_KEY = MOD_ID; // base key of all NBT things

@@ -92,16 +92,10 @@ public class KhunegosTask {
     }
 
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("KhunegosTask{")
-                .append("duration=").append(duration)
-                .append(", hunter=").append(hunter.getUuid())
-                .append(", prey=").append(prey.getUuid())
-                .append("} (")
-                .append("finished=").append(finished)
-                .append("tick task=").append(task)
-                .append(")");
-        return sb.toString();
+        return String.format(
+                "KhunegosTask{duration=%d, hunter=%s, prey=%s} (finished=%b, tick task=%s)",
+                duration, hunter.getUuid().toString(), prey.getUuid().toString(), finished, task
+        );
     }
 
     /**
@@ -252,13 +246,7 @@ public class KhunegosTask {
         }
 
         public String toString() {
-            final var sb = new StringBuilder();
-            sb.append("Incoming(")
-                    .append("is khunegos task=").append(isKhunegosTask())
-                    .append(", tick delay task=").append(delayTask)
-                    .append(", khunegos task=").append(task)
-                    .append(")");
-            return sb.toString();
+            return String.format("Incoming(is khunegos task=%b, tick delay task=%s, khunegos task=%s)", isKhunegosTask(), delayTask, task);
         }
     }
 }

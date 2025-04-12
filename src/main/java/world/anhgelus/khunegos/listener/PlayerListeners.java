@@ -46,6 +46,7 @@ public class PlayerListeners {
             return;
         }
         logger.info("first not started, {}", playersConnected);
+//        if (playersConnected < MathHelper.nextInt(rand, -1, 1) + 3) return;
         if (playersConnected < 2) return;
         // create first khunegos
         KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
