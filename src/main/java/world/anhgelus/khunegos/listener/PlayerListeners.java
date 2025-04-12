@@ -34,6 +34,12 @@ public class PlayerListeners {
     public static void join(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.onRespawn(handler.player);
+        if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) {
+            final var task = khunegosPlayer.getTask();
+            assert task != null;
+            if (khunegosPlayer.getRole() == KhunegosPlayer.Role.PREY) task.onPreyReconnection();
+            return;
+        }
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
         if (next == -1) next = 4 + MathHelper.nextInt(rand, -1, 1);
