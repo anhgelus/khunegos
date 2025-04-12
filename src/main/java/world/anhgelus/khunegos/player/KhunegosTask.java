@@ -20,6 +20,7 @@ import world.anhgelus.khunegos.timer.TimerAccess;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -187,7 +188,7 @@ public class KhunegosTask {
          * @throws IllegalArgumentException if {@link Incoming#isKhunegosTask()} is true for the given task
          */
         public static void removeTask(KhunegosTask task) {
-            final var in = khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElse(null);
+            final var in = khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElse(null);
             if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
             removeTask(in);
         }
@@ -198,16 +199,16 @@ public class KhunegosTask {
             khunegosTaskList
                     .stream()
                     .filter(Incoming::isKhunegosTask)
-                    .filter(in -> in.task.mannequin == armorStand)
-                    .forEach(in -> addTask(in.task.onPreyKilled()));
+                    .filter(in -> in.getTask().orElseThrow().mannequin == armorStand)
+                    .forEach(in -> addTask(in.getTask().orElseThrow().onPreyKilled()));
         }
 
         public static void onServerStop() {
-            khunegosTaskList.stream().filter(Incoming::isKhunegosTask).forEach(in -> in.task.onServerStop());
+            khunegosTaskList.stream().filter(Incoming::isKhunegosTask).forEach(in -> in.getTask().orElseThrow().onServerStop());
         }
 
         private static void removeTaskWithoutCancel(KhunegosTask task) {
-            final var in = Manager.khunegosTaskList.stream().filter(i -> i.task == task).findFirst().orElseThrow();
+            final var in = Manager.khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElseThrow();
             Manager.khunegosTaskList.remove(in);
         }
     }
@@ -218,7 +219,7 @@ public class KhunegosTask {
     public static class Incoming {
         public final TickTask delayTask;
         @Nullable
-        public KhunegosTask task = null;
+        private KhunegosTask task = null;
 
         public Incoming(Random rand, MinecraftServer server, boolean first) {
             if (!Manager.canServerStartsNewTask(server) && !first)
@@ -280,7 +281,11 @@ public class KhunegosTask {
                 Khunegos.LOGGER.error("Task in incoming is null");
                 return false;
             }
-            return !delayTask.isRunning() && !task.isFinished();
+            return !delayTask.isRunning() && !getTask().orElseThrow().isFinished();
+        }
+
+        public Optional<KhunegosTask> getTask() {
+            return task == null ? Optional.empty() : Optional.of(task);
         }
 
         /**
