@@ -48,10 +48,11 @@ public class KhunegosPlayer {
         this.uuid = player.getUuid();
     }
 
-    public KhunegosPlayer(UUID uuid, float healthModifier) {
+    public KhunegosPlayer(UUID uuid, PlayerData data) {
         Khunegos.LOGGER.info("Creating KhunegosPlayer with health modifier");
         this.uuid = uuid;
-        this.healthModifier = healthModifier;
+        this.healthModifier = data.healthModifier;
+        this.mustClear = data.mustClear;
     }
 
     public void onDeath(boolean killedByPlayer) {
@@ -150,6 +151,14 @@ public class KhunegosPlayer {
         return player.getInventory();
     }
 
+    public float getHealthModifier() {
+        return healthModifier;
+    }
+
+    public boolean isMustClear() {
+        return mustClear;
+    }
+
     public boolean canUseCommandCoords() {
         return this.commandCoords;
     }
@@ -244,9 +253,7 @@ public class KhunegosPlayer {
         }
 
         public static void savePlayers(StateSaver state) {
-            players.forEach((u, khunegosPlayer) -> {
-                state.players.put(u, khunegosPlayer.healthModifier);
-            });
+            players.forEach((u, player) -> state.players.put(u, PlayerData.from(player)));
         }
     }
 }
