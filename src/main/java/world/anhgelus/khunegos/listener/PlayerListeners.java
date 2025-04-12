@@ -36,8 +36,7 @@ public class PlayerListeners {
         khunegosPlayer.setConnected(true);
         khunegosPlayer.onRespawn(handler.player);
         if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) {
-            final var task = khunegosPlayer.getTask();
-            assert task != null;
+            final var task = khunegosPlayer.getTask().orElseThrow();
             if (khunegosPlayer.getRole() == KhunegosPlayer.Role.PREY) task.onPreyReconnection();
             return;
         }
@@ -65,8 +64,7 @@ public class PlayerListeners {
         khunegosPlayer.setConnected(false);
         final var role = khunegosPlayer.getRole();
         if (role == KhunegosPlayer.Role.NONE) KhunegosTask.Manager.updateIncomingTasks(server);
-        final var task = khunegosPlayer.getTask();
-        assert task != null; // true because role != none
+        final var task = khunegosPlayer.getTask().orElseThrow();
         if (role == KhunegosPlayer.Role.PREY) task.onPreyDisconnection();
     }
 
@@ -81,8 +79,7 @@ public class PlayerListeners {
             khunegosPlayer.onDeath(true);
             return;
         }
-        final var task = khunegosPlayer.getTask();
-        assert task != null; // is always valid because task is never null if role == prey
+        final var task = khunegosPlayer.getTask().orElseThrow();
         khunegosPlayer.onDeath(task.hunter == getKhunegosPlayer(killer)); // checks if it's the right player
         // remove old task and add new planned
         KhunegosTask.Manager.addTask(task.onPreyKilled());

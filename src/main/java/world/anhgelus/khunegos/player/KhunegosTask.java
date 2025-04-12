@@ -272,8 +272,8 @@ public class KhunegosTask {
         }
 
         private boolean validPlayer(KhunegosPlayer player, boolean hunter) {
-            return hunter ? player.getMaxHearts() < 10 + Khunegos.MAX_RELATIVE_HEALTH && player.getTask() == null :
-                    player.getMaxHearts() > 10 + Khunegos.MIN_RELATIVE_HEALTH && player.getTask() == null;
+            return hunter ? player.getMaxHearts() < 10 + Khunegos.MAX_RELATIVE_HEALTH && player.getTask().isEmpty() :
+                    player.getMaxHearts() > 10 + Khunegos.MIN_RELATIVE_HEALTH && player.getTask().isEmpty();
         }
 
         public boolean isKhunegosTask() {

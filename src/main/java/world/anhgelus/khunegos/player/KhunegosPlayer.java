@@ -113,9 +113,9 @@ public class KhunegosPlayer {
      * @return Current task
      * @throws IllegalStateException if task == null and if {@link Role} is not none
      */
-    public @Nullable KhunegosTask getTask() {
+    public Optional<KhunegosTask> getTask() {
         if (task == null && role != Role.NONE) throw new IllegalStateException("No task assigned to KhunegosPlayer");
-        return task;
+        return task == null ? Optional.empty() : Optional.of(task);
     }
 
     public Role getRole() {
@@ -221,13 +221,7 @@ public class KhunegosPlayer {
     }
 
     public String toString() {
-        final var sb = new StringBuilder();
-        sb.append("KhunegosPlayer{")
-                .append("role=").append(role)
-                .append(", player=").append(player)
-                .append(", task=").append(task)
-                .append("}").append(role);
-        return sb.toString();
+        return String.format("KhunegosPlayer{role=%s; player=%s; task=%s}", role.toString(), player.toString(), task.toString());
     }
 
     public enum Role {
