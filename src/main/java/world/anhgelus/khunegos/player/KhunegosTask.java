@@ -223,7 +223,12 @@ public class KhunegosTask {
         }
 
         private static void removeTaskWithoutCancel(KhunegosTask task) {
-            final var in = Manager.khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElseThrow();
+            final var in = Manager.khunegosTaskList
+                    .stream()
+                    .filter(Incoming::isKhunegosTask)
+                    .filter(i -> i.getTask().orElseThrow() == task)
+                    .findFirst()
+                    .orElseThrow();
             Manager.khunegosTaskList.remove(in);
         }
     }
