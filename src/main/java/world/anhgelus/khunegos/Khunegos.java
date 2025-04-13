@@ -49,11 +49,13 @@ public class Khunegos implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             final var state = StateSaver.getServerState(server);
+            armorStandsToSpawn.addAll(state.armorStandsToSpawn);
             KhunegosPlayer.Manager.loadPlayers(state);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             final var state = StateSaver.getServerState(server);
+            state.armorStandsToSpawn = armorStandsToSpawn;
             KhunegosPlayer.Manager.savePlayers(state);
             KhunegosTask.Manager.onServerStop();
         });
