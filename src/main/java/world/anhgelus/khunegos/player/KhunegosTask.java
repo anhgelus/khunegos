@@ -1,14 +1,5 @@
 package world.anhgelus.khunegos.player;
 
-import com.mojang.authlib.GameProfile;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.decoration.ArmorStandEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -35,7 +26,6 @@ public class KhunegosTask {
     private final long duration;
     private boolean preyKilled = false;
     private boolean finished = false;
-    private ArmorStandEntity mannequin;
 
     private KhunegosTask(MinecraftServer server, KhunegosPlayer hunter, KhunegosPlayer prey) {
         this.hunter = hunter;
@@ -80,23 +70,19 @@ public class KhunegosTask {
             Khunegos.LOGGER.warn("Khunegos already finished");
             return null;
         }
-        if (mannequin != null) prey.getInventory().dropAll();
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
         Manager.removeTaskWithoutCancel(this);
-        if (mannequin != null) {
-            // drop heart
-            final var is = KhunegosPlayer.Manager.getHeart(prey);
+        //TODO: drop stuff if prey is offline (including the heart)
+            /*final var is = KhunegosPlayer.Manager.getHeart(prey);
             final var pos = mannequin.getBlockPos();
             final var world = mannequin.getWorld();
             final var entity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is);
             entity.setPickupDelay(40);
-            world.spawnEntity(entity);
-        }
+            world.spawnEntity(entity);*/
         // start new one
         if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
-        if (mannequin != null) Khunegos.LOGGER.info("Cannot start a new incoming Khunegos task");
         return null;
     }
 
@@ -105,32 +91,32 @@ public class KhunegosTask {
     }
 
     public void onPreyDisconnection() {
-        final var head = new ItemStack(Items.PLAYER_HEAD);
-        head.set(DataComponentTypes.PROFILE, new ProfileComponent(new GameProfile(prey.getUuid(), prey.getNameString())));
         final var world = prey.getWorld();
         final var x = prey.getCoords().getX();
         final var y = prey.getCoords().getY();
         final var z = prey.getCoords().getZ();
-        mannequin = new ArmorStandEntity(world, x, y, z);
+        //TODO: handle
+        /*mannequin = new ArmorStandEntity(world, x, y, z);
         mannequin.setCustomName(prey.getName());
         mannequin.setCustomNameVisible(true);
         mannequin.setHideBasePlate(true);
         mannequin.setShowArms(true);
         mannequin.setNoGravity(true);
         mannequin.equipStack(EquipmentSlot.HEAD, head);
-        world.spawnEntity(mannequin);
+        world.spawnEntity(mannequin);*/
     }
 
     public void onPreyReconnection() {
-        if (mannequin == null) {
+        //TODO: handle
+        /*if (mannequin == null) {
             Khunegos.LOGGER.warn("Mannequin is null");
             return;
         }
-        mannequin.remove(Entity.RemovalReason.KILLED);
+        mannequin.remove(Entity.RemovalReason.KILLED);*/
     }
 
     public void onServerStop() {
-        if (mannequin != null) mannequin.remove(Entity.RemovalReason.KILLED);
+        /*if (mannequin != null) mannequin.remove(Entity.RemovalReason.KILLED);*/
     }
 
     public String toString() {
@@ -205,17 +191,6 @@ public class KhunegosTask {
             final var in = khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElse(null);
             if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
             removeTask(in);
-        }
-
-        public static void onArmorStandKilled(ArmorStandEntity armorStand) {
-            if (!armorStand.hasCustomName() || armorStand.shouldShowBasePlate() || !armorStand.shouldShowArms() || !armorStand.hasNoGravity())
-                return;
-            final var found = khunegosTaskList
-                    .stream()
-                    .filter(Incoming::isKhunegosTask)
-                    .filter(in -> in.getTask().orElseThrow().mannequin == armorStand)
-                    .findFirst();
-            found.ifPresent(i -> addTask(i.getTask().orElseThrow().onPreyKilled()));
         }
 
         public static void onServerStop() {
