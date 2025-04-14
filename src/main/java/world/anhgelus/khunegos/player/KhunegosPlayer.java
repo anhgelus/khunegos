@@ -28,7 +28,7 @@ import java.util.*;
 public class KhunegosPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
     public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
-    public static final int DELAY_BETWEEN_COORDS_COMMAND = 30;
+    public static final int DELAY_BETWEEN_COORDS_COMMAND = 10;
     private final UUID uuid;
     private ServerPlayerEntity player;
     private Role role = Role.NONE;
@@ -163,7 +163,7 @@ public class KhunegosPlayer {
         if (!commandCoords) throw new IllegalStateException("Cannot use command coords");
         commandCoords = false;
         final var timer = TimerAccess.getTimerFromOverworld(player.server);
-        timer.timer_runTask(new TickTask(() -> commandCoords = true, DELAY_BETWEEN_COORDS_COMMAND * 1000L));
+        timer.timer_runTask(new TickTask(() -> commandCoords = true, DELAY_BETWEEN_COORDS_COMMAND * 20L));
     }
 
     public WrittenBookContentComponent getBookContent() {

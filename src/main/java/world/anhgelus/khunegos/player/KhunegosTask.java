@@ -227,9 +227,12 @@ public class KhunegosTask {
                     .stream()
                     .filter(Incoming::isKhunegosTask)
                     .filter(i -> i.getTask().orElseThrow() == task)
-                    .findFirst()
-                    .orElseThrow();
-            Manager.khunegosTaskList.remove(in);
+                    .findFirst();
+            if (in.isEmpty()) {
+                Khunegos.LOGGER.warn("Failed to remove a non-existent task");
+                return;
+            }
+            Manager.khunegosTaskList.remove(in.orElseThrow());
         }
     }
 
