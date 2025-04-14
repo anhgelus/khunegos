@@ -73,14 +73,6 @@ public class KhunegosTask {
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
-        Manager.removeTaskWithoutCancel(this);
-        //TODO: drop stuff if prey is offline (including the heart)
-            /*final var is = KhunegosPlayer.Manager.getHeart(prey);
-            final var pos = mannequin.getBlockPos();
-            final var world = mannequin.getWorld();
-            final var entity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is);
-            entity.setPickupDelay(40);
-            world.spawnEntity(entity);*/
         // start new one
         if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
         return null;

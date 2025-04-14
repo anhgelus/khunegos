@@ -3,6 +3,7 @@ package world.anhgelus.khunegos.player;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.WrittenBookContentComponent;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerInventory;
@@ -85,6 +86,15 @@ public class KhunegosPlayer {
         if (!success) {
             healthModifier -= 2;
             mustClear = !connected && role == Role.PREY;
+            if (mustClear) {
+                getInventory().dropAll();
+                final var is = KhunegosPlayer.Manager.getHeart(this);
+                final var pos = getCoords();
+                final var world = getWorld();
+                final var entity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is);
+                entity.setPickupDelay(40);
+                world.spawnEntity(entity);
+            }
             if (connected) updateHealth();
         }
         this.task = null;
@@ -143,7 +153,7 @@ public class KhunegosPlayer {
         return getName().getString();
     }
 
-    public PlayerInventory getInventory() {
+    private PlayerInventory getInventory() {
         return inv != null ? inv : player.getInventory();
     }
 
