@@ -35,11 +35,7 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(true);
         khunegosPlayer.onRespawn(handler.player);
-        if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) {
-            final var task = khunegosPlayer.getTask().orElseThrow();
-            if (khunegosPlayer.getRole() == KhunegosPlayer.Role.PREY) task.onPreyReconnection();
-            return;
-        }
+        if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) return;
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
         if (next == -1) next = 4 + MathHelper.nextInt(rand, -1, 1);
@@ -63,12 +59,7 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(false);
         final var role = khunegosPlayer.getRole();
-        if (role == KhunegosPlayer.Role.NONE) {
-            KhunegosTask.Manager.updateIncomingTasks(server);
-            return;
-        }
-        final var task = khunegosPlayer.getTask().orElseThrow();
-        if (role == KhunegosPlayer.Role.PREY) task.onPreyDisconnection();
+        if (role == KhunegosPlayer.Role.NONE) KhunegosTask.Manager.updateIncomingTasks(server);
     }
 
     public static void afterDeath(LivingEntity entity, DamageSource damageSource) {

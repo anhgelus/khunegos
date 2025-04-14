@@ -7,6 +7,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
+import world.anhgelus.khunegos.timer.TickAccess;
 import world.anhgelus.khunegos.timer.TickTask;
 import world.anhgelus.khunegos.timer.TimerAccess;
 
@@ -24,6 +25,7 @@ public class KhunegosTask {
     private final TickTask task;
     private final MinecraftServer server;
     private final long duration;
+    private final TickAccess.Ticker ticker;
     private boolean preyKilled = false;
     private boolean finished = false;
 
@@ -48,6 +50,12 @@ public class KhunegosTask {
 
         hunter.giveBook();
         prey.giveBook();
+
+        ticker = () -> {
+            if (prey.isConnected()) return;
+            if (hunter.getCoords().equals(prey.getCoords())) onPreyKilled();
+        };
+        TickAccess.getTickFromOverworld(server).tick_add(ticker);
     }
 
     /**
@@ -73,6 +81,7 @@ public class KhunegosTask {
         hunter.taskFinished(preyKilled);
         prey.taskFinished(!preyKilled);
         finished = true;
+        TickAccess.getTickFromOverworld(server).tick_remove(ticker);
         // start new one
         if (Manager.canServerStartsNewTask(server)) return new Incoming(server, false);
         return null;
@@ -80,35 +89,6 @@ public class KhunegosTask {
 
     public boolean isFinished() {
         return finished;
-    }
-
-    public void onPreyDisconnection() {
-        final var world = prey.getWorld();
-        final var x = prey.getCoords().getX();
-        final var y = prey.getCoords().getY();
-        final var z = prey.getCoords().getZ();
-        //TODO: handle
-        /*mannequin = new ArmorStandEntity(world, x, y, z);
-        mannequin.setCustomName(prey.getName());
-        mannequin.setCustomNameVisible(true);
-        mannequin.setHideBasePlate(true);
-        mannequin.setShowArms(true);
-        mannequin.setNoGravity(true);
-        mannequin.equipStack(EquipmentSlot.HEAD, head);
-        world.spawnEntity(mannequin);*/
-    }
-
-    public void onPreyReconnection() {
-        //TODO: handle
-        /*if (mannequin == null) {
-            Khunegos.LOGGER.warn("Mannequin is null");
-            return;
-        }
-        mannequin.remove(Entity.RemovalReason.KILLED);*/
-    }
-
-    public void onServerStop() {
-        /*if (mannequin != null) mannequin.remove(Entity.RemovalReason.KILLED);*/
     }
 
     public String toString() {
@@ -164,6 +144,16 @@ public class KhunegosTask {
         public static void addTask(Incoming incoming) {
             if (incoming == null) return;
             khunegosTaskList.add(incoming);
+            removeAllFinishedTask();
+        }
+
+        private static void removeAllFinishedTask() {
+            khunegosTaskList.removeAll(
+                    khunegosTaskList
+                            .stream()
+                            .dropWhile(t -> t.isKhunegosTask() && t.getTask().orElseThrow().isFinished())
+                            .collect(Collectors.toCollection(ArrayList::new))
+            );
         }
 
         /**
@@ -183,23 +173,6 @@ public class KhunegosTask {
             final var in = khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElse(null);
             if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
             removeTask(in);
-        }
-
-        public static void onServerStop() {
-            khunegosTaskList.stream().filter(Incoming::isKhunegosTask).forEach(in -> in.getTask().orElseThrow().onServerStop());
-        }
-
-        private static void removeTaskWithoutCancel(KhunegosTask task) {
-            final var in = Manager.khunegosTaskList
-                    .stream()
-                    .filter(Incoming::isKhunegosTask)
-                    .filter(i -> i.getTask().orElseThrow() == task)
-                    .findFirst();
-            if (in.isEmpty()) {
-                Khunegos.LOGGER.warn("Failed to remove a non-existent task");
-                return;
-            }
-            Manager.khunegosTaskList.remove(in.orElseThrow());
         }
     }
 

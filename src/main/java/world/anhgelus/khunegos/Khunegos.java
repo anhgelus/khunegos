@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.command.CommandHandler;
 import world.anhgelus.khunegos.listener.PlayerListeners;
 import world.anhgelus.khunegos.player.KhunegosPlayer;
-import world.anhgelus.khunegos.player.KhunegosTask;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -57,7 +56,6 @@ public class Khunegos implements ModInitializer {
             final var state = StateSaver.getServerState(server);
             state.armorStandsToSpawn = armorStandsToSpawn;
             KhunegosPlayer.Manager.savePlayers(state);
-            KhunegosTask.Manager.onServerStop();
         });
 
         CommandRegistrationCallback.EVENT.register(CommandHandler::bootstrap);

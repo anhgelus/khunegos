@@ -101,6 +101,10 @@ public class KhunegosPlayer {
         role = Role.NONE;
     }
 
+    public boolean isConnected() {
+        return connected;
+    }
+
     public void setConnected(boolean connected) {
         this.connected = connected;
         if (connected) inv = null;
