@@ -125,7 +125,7 @@ public class Task {
         }
 
         public static void updateIncomingTasks(MinecraftServer server) {
-            if (!canServerStartsNewTask(server)) return;
+            if (canServerStartsNewTask(server)) return;
             if (!removeRandomTask(server.getOverworld().getRandom()))
                 Khunegos.LOGGER.warn("Failed to remove a random task");
         }
