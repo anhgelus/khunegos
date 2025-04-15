@@ -117,7 +117,7 @@ public class KhunegosTask {
         public static boolean removeRandomTask(Random rand) {
             final var list = khunegosTaskList
                     .stream()
-                    .filter(Incoming::isKhunegosTask)
+                    .filter(i -> !i.isKhunegosTask())
                     .collect(Collectors.toCollection(ArrayList::new));
             if (list.isEmpty()) return false;
             final var rem = list.get(rand.nextBetween(0, list.size() - 1));
@@ -126,9 +126,8 @@ public class KhunegosTask {
 
         public static void updateIncomingTasks(MinecraftServer server) {
             if (!canServerStartsNewTask(server)) return;
-            if (!removeRandomTask(server.getOverworld().getRandom())) {
+            if (!removeRandomTask(server.getOverworld().getRandom()))
                 Khunegos.LOGGER.warn("Failed to remove a random task");
-            }
         }
 
         public static boolean canServerStartsNewTask(MinecraftServer server) {
