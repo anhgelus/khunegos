@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
-public class WorldAccess implements TimerAccess, TickAccess {
+public class WorldTickAccess implements TimerAccess, TickAccess {
     @Unique
     private final List<TickTask> tasks = new ArrayList<>();
     @Unique
@@ -33,7 +33,10 @@ public class WorldAccess implements TimerAccess, TickAccess {
             try {
                 t.tick();
             } catch (Exception e) {
-                Khunegos.LOGGER.error("Caught exception during tick", e);
+                Khunegos.LOGGER.error(
+                        "Caught exception during tick (task)",
+                        new TimerAccess.TimerException("An error occurred while running TickTask", t, e)
+                );
             }
         });
         tasks.addAll(tasksToRun);
@@ -43,7 +46,10 @@ public class WorldAccess implements TimerAccess, TickAccess {
             try {
                 t.tick();
             } catch (Exception e) {
-                Khunegos.LOGGER.error("Caught exception during tick", e);
+                Khunegos.LOGGER.error(
+                        "Caught exception during tick (ticker)",
+                        new TickAccess.TickerException("An error occurred while running Ticker", e)
+                );
             }
         });
         tickers.removeAll(tickersToRemove);

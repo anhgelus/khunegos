@@ -67,4 +67,10 @@ public interface TimerAccess {
     interface Task {
         void run();
     }
+
+    class TimerException extends CustomTickingException {
+        public TimerException(String message, TickTask task, Exception cause) {
+            super(String.format("%s. Task: %s", message, task), cause);
+        }
+    }
 }

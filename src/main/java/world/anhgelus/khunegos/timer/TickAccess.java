@@ -34,4 +34,10 @@ public interface TickAccess {
          */
         void tick();
     }
+
+    class TickerException extends CustomTickingException {
+        public TickerException(String message, Exception cause) {
+            super(message, cause);
+        }
+    }
 }
