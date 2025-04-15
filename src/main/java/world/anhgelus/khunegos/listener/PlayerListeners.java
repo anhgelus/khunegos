@@ -38,7 +38,7 @@ public class PlayerListeners {
         if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) return;
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
-        if (next == -1) next = 4 + MathHelper.nextInt(rand, -1, 1);
+        if (next == -1) next = 3 + MathHelper.nextInt(rand, -1, 1);
         final var playersConnected = server.getPlayerManager().getPlayerList().size() + 1;
         if (firstStarted) {
             if (MathHelper.nextInt(rand, 0, 1) == 1) return;
