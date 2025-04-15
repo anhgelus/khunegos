@@ -102,7 +102,7 @@ public class KhunegosTask {
      * Manage all tasks
      */
     public static class Manager {
-        private static final List<Incoming> khunegosTaskList = new ArrayList<>();
+        private static List<Incoming> khunegosTaskList = new ArrayList<>();
 
         /**
          * @return copy of the khunegos task list
@@ -148,12 +148,10 @@ public class KhunegosTask {
         }
 
         private static void removeAllFinishedTask() {
-            khunegosTaskList.removeAll(
-                    khunegosTaskList
-                            .stream()
-                            .dropWhile(t -> t.isKhunegosTask() && t.getTask().orElseThrow().isFinished())
-                            .collect(Collectors.toCollection(ArrayList::new))
-            );
+            khunegosTaskList = khunegosTaskList
+                    .stream()
+                    .dropWhile(t -> t.isKhunegosTask() && t.getTask().orElseThrow().isFinished())
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
 
         /**
