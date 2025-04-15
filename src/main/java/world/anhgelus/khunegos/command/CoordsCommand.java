@@ -26,7 +26,9 @@ public class CoordsCommand {
                         return Command.SINGLE_SUCCESS;
                     }
                     final var task = khunegos.getTask().orElseThrow();
-                    source.sendFeedback(() -> Text.of("Your prey's coords: " + task.prey.getCoordsString()), false);
+                    source.sendFeedback(() -> Text.of(
+                            "Your prey's coords: " + task.prey.getCoordsString() + " (" + task.prey.getWorld().asString() + ")"
+                    ), false);
                     khunegos.useCommandCoords();
                     return Command.SINGLE_SUCCESS;
                 });
