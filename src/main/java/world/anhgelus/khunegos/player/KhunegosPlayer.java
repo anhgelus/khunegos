@@ -40,7 +40,7 @@ public class KhunegosPlayer {
      * If not, throw an {@link IllegalStateException}
      */
     @Nullable
-    private KhunegosTask task = null;
+    private Task task = null;
     private boolean connected = false;
     private boolean mustClear = false;
     @Nullable
@@ -76,7 +76,7 @@ public class KhunegosPlayer {
         updateHealth();
     }
 
-    public void assignTask(@NotNull KhunegosTask task) {
+    public void assignTask(@NotNull Task task) {
         this.task = task;
         if (task.hunter == this) role = Role.HUNTER;
         else role = Role.PREY;
@@ -123,7 +123,7 @@ public class KhunegosPlayer {
      * @return Current task
      * @throws IllegalStateException if task == null and if {@link Role} is not none
      */
-    public Optional<KhunegosTask> getTask() {
+    public Optional<Task> getTask() {
         if (task == null && role != Role.NONE) throw new IllegalStateException("No task assigned to KhunegosPlayer");
         return task == null ? Optional.empty() : Optional.of(task);
     }

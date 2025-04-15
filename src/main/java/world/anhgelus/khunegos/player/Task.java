@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Represents the task to complete during Khunegos for hunter and prey
  */
-public class KhunegosTask {
+public class Task {
     public final KhunegosPlayer hunter;
     public final KhunegosPlayer prey;
     private final TickTask task;
@@ -29,7 +29,7 @@ public class KhunegosTask {
     private boolean preyKilled = false;
     private boolean finished = false;
 
-    private KhunegosTask(MinecraftServer server, KhunegosPlayer hunter, KhunegosPlayer prey) {
+    private Task(MinecraftServer server, KhunegosPlayer hunter, KhunegosPlayer prey) {
         this.hunter = hunter;
         this.prey = prey;
         this.server = server;
@@ -137,7 +137,7 @@ public class KhunegosTask {
         public static boolean canServerStartsNewTask(MinecraftServer server, boolean bl) {
             var size = server.getPlayerManager().getPlayerList().size();
             if (bl) size++;
-            return size - 2 >= KhunegosTask.Manager.getTasks().size() / 2;
+            return size - 2 >= getTasks().size() / 2;
         }
 
         public static void addTask(Incoming incoming) {
@@ -166,7 +166,7 @@ public class KhunegosTask {
          * @throws IllegalArgumentException if cannot find an incoming task with the given task
          * @throws IllegalArgumentException if {@link Incoming#isKhunegosTask()} is true for the given task
          */
-        public static void removeTask(KhunegosTask task) {
+        public static void removeTask(Task task) {
             final var in = khunegosTaskList.stream().filter(i -> i.getTask().orElseThrow() == task).findFirst().orElse(null);
             if (in == null) throw new IllegalArgumentException("Cannot remove a non-existent task");
             removeTask(in);
@@ -174,12 +174,12 @@ public class KhunegosTask {
     }
 
     /**
-     * Represents an incoming {@link KhunegosTask} delayed
+     * Represents an incoming {@link Task} delayed
      */
     public static class Incoming {
         public final TickTask delayTask;
         @Nullable
-        private KhunegosTask task = null;
+        private Task task = null;
 
         public Incoming(Random rand, MinecraftServer server, boolean first) {
             if (!Manager.canServerStartsNewTask(server) && !first)
@@ -201,7 +201,7 @@ public class KhunegosTask {
                     Khunegos.LOGGER.error("Cannot find a valid player for being a prey");
                     return;
                 }
-                task = new KhunegosTask(server, khunegosHunter, khunegosPrey);
+                task = new Task(server, khunegosHunter, khunegosPrey);
             }, delay * 1000L);
             TimerAccess.getTimerFromOverworld(server).timer_runTask(delayTask);
         }
@@ -244,7 +244,7 @@ public class KhunegosTask {
             return !delayTask.isRunning() && !getTask().orElseThrow().isFinished();
         }
 
-        public Optional<KhunegosTask> getTask() {
+        public Optional<Task> getTask() {
             return task == null ? Optional.empty() : Optional.of(task);
         }
 
