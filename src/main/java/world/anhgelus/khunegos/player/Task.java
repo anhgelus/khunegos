@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
  * Represents the task to complete during Khunegos for hunter and prey
  */
 public class Task {
-    public final KhunegosPlayer hunter;
-    public final KhunegosPlayer prey;
+    public final KPlayer hunter;
+    public final KPlayer prey;
     private final TickTask task;
     private final MinecraftServer server;
     private final long duration;
@@ -29,7 +29,7 @@ public class Task {
     private boolean preyKilled = false;
     private boolean finished = false;
 
-    private Task(MinecraftServer server, KhunegosPlayer hunter, KhunegosPlayer prey) {
+    private Task(MinecraftServer server, KPlayer hunter, KPlayer prey) {
         this.hunter = hunter;
         this.prey = prey;
         this.server = server;
@@ -217,21 +217,21 @@ public class Task {
          * @return the player or null if impossible to find a valid player
          */
         @Nullable
-        private KhunegosPlayer getRandomPlayer(List<ServerPlayerEntity> players, Random rand, boolean isHunter) {
+        private KPlayer getRandomPlayer(List<ServerPlayerEntity> players, Random rand, boolean isHunter) {
             if (players.isEmpty()) return null;
             var p = players.get(MathHelper.nextInt(rand, 0, players.size() - 1));
             players.remove(p);
-            var pk = KhunegosPlayer.Manager.getKhunegosPlayer(p);
+            var pk = KPlayer.Manager.getKhunegosPlayer(p);
             while (!players.isEmpty() && !validPlayer(pk, isHunter)) {
                 p = players.get(MathHelper.nextInt(rand, 0, players.size() - 1));
                 players.remove(p);
-                pk = KhunegosPlayer.Manager.getKhunegosPlayer(p);
+                pk = KPlayer.Manager.getKhunegosPlayer(p);
             }
             // verify validity
             return validPlayer(pk, isHunter) ? pk : null;
         }
 
-        private boolean validPlayer(KhunegosPlayer player, boolean hunter) {
+        private boolean validPlayer(KPlayer player, boolean hunter) {
             return hunter ? player.getMaxHearts() < 10 + Khunegos.MAX_RELATIVE_HEALTH && player.getTask().isEmpty() :
                     player.getMaxHearts() > 10 + Khunegos.MIN_RELATIVE_HEALTH && player.getTask().isEmpty();
         }

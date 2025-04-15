@@ -23,7 +23,7 @@ public class PlayerData {
         return data;
     }
 
-    public static PlayerData from(KhunegosPlayer player) {
+    public static PlayerData from(KPlayer player) {
         final var data = new PlayerData();
         data.healthModifier = player.getHealthModifier();
         data.mustClear = player.isMustClear();

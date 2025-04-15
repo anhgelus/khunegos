@@ -4,7 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
-import world.anhgelus.khunegos.player.KhunegosPlayer;
+import world.anhgelus.khunegos.player.KPlayer;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -16,8 +16,8 @@ public class CoordsCommand {
                     if (!source.isExecutedByPlayer()) return 2;
                     final var player = source.getPlayer();
                     assert player != null;
-                    final var khunegos = KhunegosPlayer.Manager.getKhunegosPlayer(player);
-                    if (khunegos.getRole() != KhunegosPlayer.Role.HUNTER) {
+                    final var khunegos = KPlayer.Manager.getKhunegosPlayer(player);
+                    if (khunegos.getRole() != KPlayer.Role.HUNTER) {
                         source.sendFeedback(() -> Text.of("Your are not an hunter."), false);
                         return Command.SINGLE_SUCCESS;
                     }

@@ -26,7 +26,7 @@ import world.anhgelus.khunegos.timer.TimerAccess;
 
 import java.util.*;
 
-public class KhunegosPlayer {
+public class KPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
     public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
     public static final int DELAY_BETWEEN_COORDS_COMMAND = 10;
@@ -46,12 +46,12 @@ public class KhunegosPlayer {
     @Nullable
     private PlayerInventory inv = null;
 
-    public KhunegosPlayer(ServerPlayerEntity player) {
+    public KPlayer(ServerPlayerEntity player) {
         this.player = player;
         this.uuid = player.getUuid();
     }
 
-    public KhunegosPlayer(UUID uuid, PlayerData data) {
+    public KPlayer(UUID uuid, PlayerData data) {
         Khunegos.LOGGER.info("Creating KhunegosPlayer with health modifier");
         this.uuid = uuid;
         this.healthModifier = data.healthModifier;
@@ -88,7 +88,7 @@ public class KhunegosPlayer {
             mustClear = !connected && role == Role.PREY;
             if (mustClear) {
                 getInventory().dropAll();
-                final var is = KhunegosPlayer.Manager.getHeart(this);
+                final var is = KPlayer.Manager.getHeart(this);
                 final var pos = getCoords();
                 final var world = getWorld();
                 final var entity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is);
@@ -241,19 +241,19 @@ public class KhunegosPlayer {
     }
 
     public static class Manager {
-        private static final Map<UUID, KhunegosPlayer> players = new HashMap<>();
+        private static final Map<UUID, KPlayer> players = new HashMap<>();
 
-        public static KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
-            return players.computeIfAbsent(player.getUuid(), k -> new KhunegosPlayer(player));
+        public static KPlayer getKhunegosPlayer(ServerPlayerEntity player) {
+            return players.computeIfAbsent(player.getUuid(), k -> new KPlayer(player));
         }
 
         @Nullable
-        public static KhunegosPlayer getKhunegosPlayer(UUID uuid) {
+        public static KPlayer getKhunegosPlayer(UUID uuid) {
             return players.get(uuid);
         }
 
         public static void loadPlayers(StateSaver state) {
-            state.players.forEach((uuid, data) -> players.put(uuid, new KhunegosPlayer(uuid, data)));
+            state.players.forEach((uuid, data) -> players.put(uuid, new KPlayer(uuid, data)));
         }
 
         public static void savePlayers(StateSaver state) {
@@ -269,7 +269,7 @@ public class KhunegosPlayer {
             return is;
         }
 
-        public static ItemStack getHeart(KhunegosPlayer player) {
+        public static ItemStack getHeart(KPlayer player) {
             return getHeart(player.player);
         }
     }

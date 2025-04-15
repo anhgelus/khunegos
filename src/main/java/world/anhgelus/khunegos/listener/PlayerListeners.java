@@ -20,10 +20,10 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
 import world.anhgelus.khunegos.Khunegos;
-import world.anhgelus.khunegos.player.KhunegosPlayer;
+import world.anhgelus.khunegos.player.KPlayer;
 import world.anhgelus.khunegos.player.Task;
 
-import static world.anhgelus.khunegos.player.KhunegosPlayer.Manager.getKhunegosPlayer;
+import static world.anhgelus.khunegos.player.KPlayer.Manager.getKhunegosPlayer;
 
 public class PlayerListeners {
     private final static Logger logger = Khunegos.LOGGER;
@@ -35,7 +35,7 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(true);
         khunegosPlayer.onRespawn(handler.player);
-        if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) return;
+        if (khunegosPlayer.getRole() != KPlayer.Role.NONE) return;
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
         if (next == -1) next = 3 + MathHelper.nextInt(rand, -1, 1);
@@ -59,7 +59,7 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(false);
         final var role = khunegosPlayer.getRole();
-        if (role == KhunegosPlayer.Role.NONE) Task.Manager.updateIncomingTasks(server);
+        if (role == KPlayer.Role.NONE) Task.Manager.updateIncomingTasks(server);
     }
 
     public static void afterDeath(LivingEntity entity, DamageSource damageSource) {
@@ -69,7 +69,7 @@ public class PlayerListeners {
             khunegosPlayer.onDeath(false);
             return;
         }
-        if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) {
+        if (khunegosPlayer.getRole() != KPlayer.Role.PREY) {
             khunegosPlayer.onDeath(true);
             return;
         }
@@ -99,7 +99,7 @@ public class PlayerListeners {
         if (!is.isOf(Items.NETHER_STAR)) return ActionResult.FAIL; // fail to prevent player to pick armor stand's thing
         final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
         if (nbt == null) return ActionResult.FAIL;
-        if (!nbt.contains(KhunegosPlayer.PLAYER_KEY)) return ActionResult.FAIL;
+        if (!nbt.contains(KPlayer.PLAYER_KEY)) return ActionResult.FAIL;
         player.getInventory().removeOne(is);
         getKhunegosPlayer((ServerPlayerEntity) player).onDeposeHeart();
         return ActionResult.SUCCESS;
