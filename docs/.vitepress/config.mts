@@ -8,15 +8,17 @@ export default defineConfig({
         // https://vitepress.dev/reference/default-theme-config
         nav: [
             {text: 'Home', link: '/'},
-            {text: 'Examples', link: '/markdown-examples'}
+            {text: 'Presentation', link: '/presentation'},
+            {text: 'Getting started', link: '/getting-started'}
         ],
 
         sidebar: [
             {
-                text: 'Examples',
+                text: 'Content',
                 items: [
-                    {text: 'Markdown Examples', link: '/markdown-examples'},
-                    {text: 'Runtime API Examples', link: '/api-examples'}
+                    {text: 'Presentation', link: '/presentation'},
+                    {text: 'Getting started', link: '/getting-started'},
+                    {text: 'Technical details behind khunegos', link: '/technical-details'}
                 ]
             }
         ],
