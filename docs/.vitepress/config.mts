@@ -31,5 +31,7 @@ export default defineConfig({
             message: 'Released under the AGPL License. <a href="https://www.anhgelus.world/legal/" target="_blank">Legal information</a>.',
             copyright: 'Copyright © 2025 William Hergès'
         }
-    }
+    },
+    lang: "en-US",
+    base: "/khunegos/"
 })
