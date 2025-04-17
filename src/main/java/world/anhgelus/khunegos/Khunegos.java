@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
+import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
@@ -30,11 +31,21 @@ import java.util.Set;
 public class Khunegos implements ModInitializer {
     public static final String MOD_ID = "khunegos";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static final float KHUNEGOS_DURATION = 2f; // in day(s)
-    public static final float KHUNEGOS_BASE_DELAY = 1.5f; // in day(s)
     public static final String BASE_KEY = MOD_ID; // base key of all NBT things
     private static final Set<BlockPos> armorStandsToSpawn = new HashSet<>();
     private static final Set<ChunkPos> alreadySpawned = new HashSet<>();
+    public static double KHUNEGOS_DURATION = 2f; // in day(s)
+    public static final GameRules.Key<DoubleRule> KHUNEGOS_DURATION_RULE = GameRuleRegistry.register(
+            MOD_ID + ":duration",
+            GameRules.Category.MISC,
+            GameRuleFactory.createDoubleRule(2, (server, rule) -> KHUNEGOS_DURATION = rule.get())
+    );
+    public static double KHUNEGOS_DELAY = 1.5f; // in day(s)
+    public static final GameRules.Key<DoubleRule> KHUNEGOS_DELAY_RULE = GameRuleRegistry.register(
+            MOD_ID + ":delay",
+            GameRules.Category.MISC,
+            GameRuleFactory.createDoubleRule(1.5, (server, rule) -> KHUNEGOS_DELAY = rule.get())
+    );
     public static int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final GameRules.Key<GameRules.IntRule> MAX_HEALTH_RULE = GameRuleRegistry.register(
             MOD_ID + ":maxHealth",
