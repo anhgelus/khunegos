@@ -35,10 +35,11 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(true);
         khunegosPlayer.onRespawn(handler.player);
+        if (!Khunegos.ENABLED) return;
         if (khunegosPlayer.getRole() != KPlayer.Role.NONE) return;
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
-        if (next == -1) next = 3 + MathHelper.nextInt(rand, -1, 1);
+        if (next == -1) next = Khunegos.FIRST_START_PLAYERS + MathHelper.nextInt(rand, -1, 1);
         final var playersConnected = server.getPlayerManager().getPlayerList().size() + 1;
         if (firstStarted) {
             if (MathHelper.nextInt(rand, 0, 1) == 1) return;
@@ -58,12 +59,14 @@ public class PlayerListeners {
     public static void disconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(false);
+        if (!Khunegos.ENABLED) return;
         final var role = khunegosPlayer.getRole();
         if (role == KPlayer.Role.NONE) Task.Manager.updateIncomingTasks(server);
     }
 
     public static void afterDeath(LivingEntity entity, DamageSource damageSource) {
         if (!(entity instanceof ServerPlayerEntity player)) return;
+        if (!Khunegos.ENABLED) return;
         final var khunegosPlayer = getKhunegosPlayer(player);
         if (!(damageSource.getAttacker() instanceof ServerPlayerEntity killer)) {
             khunegosPlayer.onDeath(false);

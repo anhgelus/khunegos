@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
@@ -14,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import world.anhgelus.khunegos.command.CommandHandler;
@@ -27,16 +30,35 @@ import java.util.Set;
 public class Khunegos implements ModInitializer {
     public static final String MOD_ID = "khunegos";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
     public static final float KHUNEGOS_DURATION = 2f; // in day(s)
     public static final float KHUNEGOS_BASE_DELAY = 1.5f; // in day(s)
-    public static final int MAX_RELATIVE_HEALTH = 5; // in heart(s)
-    public static final int MIN_RELATIVE_HEALTH = -5; // in heart(s)
     public static final String BASE_KEY = MOD_ID; // base key of all NBT things
-    public static final String ARMOR_STAND_KEY = BASE_KEY + "_armor_stand"; // base key of all NBT things
-
     private static final Set<BlockPos> armorStandsToSpawn = new HashSet<>();
     private static final Set<ChunkPos> alreadySpawned = new HashSet<>();
+    public static int MAX_RELATIVE_HEALTH = 5; // in heart(s)
+    public static final GameRules.Key<GameRules.IntRule> MAX_HEALTH_RULE = GameRuleRegistry.register(
+            MOD_ID + ":maxHealth",
+            GameRules.Category.MISC,
+            GameRuleFactory.createIntRule(15, 1, (server, rule) -> MAX_RELATIVE_HEALTH = rule.get() - 10)
+    );
+    public static int MIN_RELATIVE_HEALTH = -5; // in heart(s)
+    public static final GameRules.Key<GameRules.IntRule> MIN_HEALTH_RULE = GameRuleRegistry.register(
+            MOD_ID + ":minHealth",
+            GameRules.Category.MISC,
+            GameRuleFactory.createIntRule(5, 1, (server, rule) -> MIN_RELATIVE_HEALTH = rule.get() - 10)
+    );
+    public static int FIRST_START_PLAYERS = 4;
+    public static final GameRules.Key<GameRules.IntRule> MIN_PLAYERS_RULE = GameRuleRegistry.register(
+            MOD_ID + ":minPlayers",
+            GameRules.Category.MISC,
+            GameRuleFactory.createIntRule(3, 2, (server, rule) -> FIRST_START_PLAYERS = rule.get() + 1)
+    );
+    public static boolean ENABLED = false;
+    public static final GameRules.Key<GameRules.BooleanRule> ENABLE_RULE = GameRuleRegistry.register(
+            MOD_ID + ":enable",
+            GameRules.Category.MISC,
+            GameRuleFactory.createBooleanRule(false, (server, rule) -> ENABLED = rule.get())
+    );
 
     public static void spawnArmorStand(BlockPos pos) {
         armorStandsToSpawn.add(pos);

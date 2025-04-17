@@ -21,8 +21,8 @@ The mod does not have a configuration file.
 You can configure all important things with gamerules.
 Their prefix is `khunegos:`.
 
-To enable/disable khunegos, set to true/false the gamerule `khunegos:enableKhunegos` 
-(e.g., `/gamerule khunegos:enableKhunegos true` to enable it).
+To enable/disable khunegos, set to true/false the gamerule `khunegos:enable` 
+(e.g., `/gamerule khunegos:enable true` to enable it).
 By default, it is set to false.
 
 To modify the minimum number of players to start the first khunegos, modify `khunegos:minPlayers`.
