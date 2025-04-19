@@ -53,7 +53,8 @@ public class Task {
 
         ticker = () -> {
             if (prey.isConnected()) return;
-            if (hunter.getCoords().equals(prey.getCoords())) onPreyKilled();
+            if (hunter.getCoords().equals(prey.getCoords()) && hunter.getWorld().getRegistryKey() == prey.getWorld().getRegistryKey())
+                onPreyKilled();
         };
         TickAccess.getTickFromOverworld(server).tick_add(ticker);
     }
