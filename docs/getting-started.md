@@ -21,9 +21,11 @@ The mod does not have a configuration file.
 You can configure all important things with gamerules.
 Their prefix is `khunegos:`.
 
-To enable/disable khunegos, set to true/false the gamerule `khunegos:enableKhunegos` 
-(e.g., `/gamerule khunegos:enableKhunegos true` to enable it).
+To enable/disable khunegos, set to true/false the gamerule `khunegos:enable` 
+(e.g., `/gamerule khunegos:enable true` to enable it).
 By default, it is set to false.
+
+### Players
 
 To modify the minimum number of players to start the first khunegos, modify `khunegos:minPlayers`.
 For your information, the first khunegos is started when a random amount between the minimum and the minimum + 2 is 
@@ -33,3 +35,13 @@ By default, it is set to 3.
 
 To modify the minimum health and the maximum health, modify `khunegos:minHealth` and `khunegos:maxHealth`.
 By default, the minimum is 5 and the maximum is 15.
+
+### Khunegos
+
+To modify the base duration of a khunegos, modify `khunegos:duration`.
+The value is in Minecraft days (i.e. 1 = 20 minutes, 1.5 = 30 minutes, 2 = 40 minutes...).
+By default, it is set to 2.
+
+To modify the base delay between two khunegos, modify `khunegos:delay`.
+The value is in Minecraft days (i.e. 1 = 20 minutes, 1.5 = 30 minutes, 2 = 40 minutes...).
+By default, it is set to 1.5.

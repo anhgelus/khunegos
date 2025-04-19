@@ -18,13 +18,13 @@ When a player disconnect, the number of incoming khunegos is reduced if needed.
 ## Times
 
 The duration of a khunegos is random. 
-It is a random value between 35 and 45 minutes.
+It is near the value set by the gamerule `khunegos:duration`.
 
 The delay between two khunegos is also random.
-It is a random value between 35 and 45 minutes.
+It is near the value set by the gamerule `khunegos:delay`.
 
 The delay before starting the first khunegos is, as always, random.
-It is between 0 and 5 minutes after the connexion of the last players.
+It is roughly between 0 and 5 minutes after the connexion of the last players.
 
 ## Restart
 
