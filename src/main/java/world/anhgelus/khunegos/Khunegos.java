@@ -38,37 +38,37 @@ public class Khunegos implements ModInitializer {
     public static final GameRules.Key<DoubleRule> KHUNEGOS_DURATION_RULE = GameRuleRegistry.register(
             MOD_ID + ":duration",
             GameRules.Category.MISC,
-            GameRuleFactory.createDoubleRule(2, (server, rule) -> KHUNEGOS_DURATION = rule.get())
+            GameRuleFactory.createDoubleRule(KHUNEGOS_DURATION, (server, rule) -> KHUNEGOS_DURATION = rule.get())
     );
     public static double KHUNEGOS_DELAY = 1.5f; // in day(s)
     public static final GameRules.Key<DoubleRule> KHUNEGOS_DELAY_RULE = GameRuleRegistry.register(
             MOD_ID + ":delay",
             GameRules.Category.MISC,
-            GameRuleFactory.createDoubleRule(1.5, (server, rule) -> KHUNEGOS_DELAY = rule.get())
+            GameRuleFactory.createDoubleRule(KHUNEGOS_DELAY, (server, rule) -> KHUNEGOS_DELAY = rule.get())
     );
     public static int MAX_RELATIVE_HEALTH = 5; // in heart(s)
     public static final GameRules.Key<GameRules.IntRule> MAX_HEALTH_RULE = GameRuleRegistry.register(
             MOD_ID + ":maxHealth",
             GameRules.Category.MISC,
-            GameRuleFactory.createIntRule(15, 1, (server, rule) -> MAX_RELATIVE_HEALTH = rule.get() - 10)
+            GameRuleFactory.createIntRule(MAX_RELATIVE_HEALTH + 10, 11, (server, rule) -> MAX_RELATIVE_HEALTH = rule.get() - 10)
     );
     public static int MIN_RELATIVE_HEALTH = -5; // in heart(s)
     public static final GameRules.Key<GameRules.IntRule> MIN_HEALTH_RULE = GameRuleRegistry.register(
             MOD_ID + ":minHealth",
             GameRules.Category.MISC,
-            GameRuleFactory.createIntRule(5, 1, (server, rule) -> MIN_RELATIVE_HEALTH = rule.get() - 10)
+            GameRuleFactory.createIntRule(MIN_RELATIVE_HEALTH + 10, 1, (server, rule) -> MIN_RELATIVE_HEALTH = rule.get() - 10)
     );
     public static int FIRST_START_PLAYERS = 4;
     public static final GameRules.Key<GameRules.IntRule> MIN_PLAYERS_RULE = GameRuleRegistry.register(
             MOD_ID + ":minPlayers",
             GameRules.Category.MISC,
-            GameRuleFactory.createIntRule(3, 2, (server, rule) -> FIRST_START_PLAYERS = rule.get() + 1)
+            GameRuleFactory.createIntRule(FIRST_START_PLAYERS, 2, (server, rule) -> FIRST_START_PLAYERS = rule.get() + 1)
     );
     public static boolean ENABLED = false;
     public static final GameRules.Key<GameRules.BooleanRule> ENABLE_RULE = GameRuleRegistry.register(
             MOD_ID + ":enable",
             GameRules.Category.MISC,
-            GameRuleFactory.createBooleanRule(false, (server, rule) -> ENABLED = rule.get())
+            GameRuleFactory.createBooleanRule(ENABLED, (server, rule) -> ENABLED = rule.get())
     );
 
     public static void spawnArmorStand(BlockPos pos) {
