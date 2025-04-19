@@ -20,10 +20,10 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
 import world.anhgelus.khunegos.Khunegos;
-import world.anhgelus.khunegos.player.KhunegosPlayer;
-import world.anhgelus.khunegos.player.KhunegosTask;
+import world.anhgelus.khunegos.player.KPlayer;
+import world.anhgelus.khunegos.player.Task;
 
-import static world.anhgelus.khunegos.player.KhunegosPlayer.Manager.getKhunegosPlayer;
+import static world.anhgelus.khunegos.player.KPlayer.Manager.getKhunegosPlayer;
 
 public class PlayerListeners {
     private final static Logger logger = Khunegos.LOGGER;
@@ -35,19 +35,15 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(true);
         khunegosPlayer.onRespawn(handler.player);
-        if (khunegosPlayer.getRole() != KhunegosPlayer.Role.NONE) {
-            final var task = khunegosPlayer.getTask().orElseThrow();
-            if (khunegosPlayer.getRole() == KhunegosPlayer.Role.PREY) task.onPreyReconnection();
-            return;
-        }
+        if (khunegosPlayer.getRole() != KPlayer.Role.NONE) return;
         // setup khunegos
         final var rand = server.getOverworld().getRandom();
-        if (next == -1) next = 4 + MathHelper.nextInt(rand, -1, 1);
+        if (next == -1) next = 3 + MathHelper.nextInt(rand, -1, 1);
         final var playersConnected = server.getPlayerManager().getPlayerList().size() + 1;
         if (firstStarted) {
             if (MathHelper.nextInt(rand, 0, 1) == 1) return;
-            if (KhunegosTask.Manager.canServerStartsNewTask(server, true))
-                KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, false));
+            if (Task.Manager.canServerStartsNewTask(server, true))
+                Task.Manager.addTask(new Task.Incoming(server, false));
             else logger.info("Cannot start a new task (not enough players)");
             return;
         }
@@ -55,7 +51,7 @@ public class PlayerListeners {
         if (playersConnected < next) return;
 //        if (playersConnected < 2) return;
         // create first khunegos
-        KhunegosTask.Manager.addTask(new KhunegosTask.Incoming(server, true));
+        Task.Manager.addTask(new Task.Incoming(server, true));
         firstStarted = true;
     }
 
@@ -63,12 +59,7 @@ public class PlayerListeners {
         final var khunegosPlayer = getKhunegosPlayer(handler.player);
         khunegosPlayer.setConnected(false);
         final var role = khunegosPlayer.getRole();
-        if (role == KhunegosPlayer.Role.NONE) {
-            KhunegosTask.Manager.updateIncomingTasks(server);
-            return;
-        }
-        final var task = khunegosPlayer.getTask().orElseThrow();
-        if (role == KhunegosPlayer.Role.PREY) task.onPreyDisconnection();
+        if (role == KPlayer.Role.NONE) Task.Manager.updateIncomingTasks(server);
     }
 
     public static void afterDeath(LivingEntity entity, DamageSource damageSource) {
@@ -78,14 +69,14 @@ public class PlayerListeners {
             khunegosPlayer.onDeath(false);
             return;
         }
-        if (khunegosPlayer.getRole() != KhunegosPlayer.Role.PREY) {
+        if (khunegosPlayer.getRole() != KPlayer.Role.PREY) {
             khunegosPlayer.onDeath(true);
             return;
         }
         final var task = khunegosPlayer.getTask().orElseThrow();
         khunegosPlayer.onDeath(task.hunter == getKhunegosPlayer(killer)); // checks if it's the right player
         // remove old task and add new planned
-        KhunegosTask.Manager.addTask(task.onPreyKilled());
+        Task.Manager.addTask(task.onPreyKilled());
     }
 
     public static void afterRespawn(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean alive) {
@@ -108,7 +99,7 @@ public class PlayerListeners {
         if (!is.isOf(Items.NETHER_STAR)) return ActionResult.FAIL; // fail to prevent player to pick armor stand's thing
         final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
         if (nbt == null) return ActionResult.FAIL;
-        if (!nbt.contains(KhunegosPlayer.PLAYER_KEY)) return ActionResult.FAIL;
+        if (!nbt.contains(KPlayer.PLAYER_KEY)) return ActionResult.FAIL;
         player.getInventory().removeOne(is);
         getKhunegosPlayer((ServerPlayerEntity) player).onDeposeHeart();
         return ActionResult.SUCCESS;

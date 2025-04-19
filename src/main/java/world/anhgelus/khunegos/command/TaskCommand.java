@@ -4,7 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
-import world.anhgelus.khunegos.player.KhunegosTask;
+import world.anhgelus.khunegos.player.Task;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -14,7 +14,7 @@ public class TaskCommand {
                 .requires(s -> s.hasPermissionLevel(3))
                 .executes(context -> {
                     final var source = context.getSource();
-                    final var tasks = KhunegosTask.Manager.getTasks();
+                    final var tasks = Task.Manager.getTasks();
                     tasks.forEach(task -> source.sendFeedback(() -> Text.literal(task.toString()), false));
                     return Command.SINGLE_SUCCESS;
                 });

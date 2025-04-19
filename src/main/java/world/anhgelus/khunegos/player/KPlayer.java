@@ -3,6 +3,7 @@ package world.anhgelus.khunegos.player;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.component.type.WrittenBookContentComponent;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerInventory;
@@ -10,12 +11,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import world.anhgelus.khunegos.Khunegos;
@@ -25,7 +26,7 @@ import world.anhgelus.khunegos.timer.TimerAccess;
 
 import java.util.*;
 
-public class KhunegosPlayer {
+public class KPlayer {
     public static final Identifier HEALTH_MODIFIER = Identifier.of(Khunegos.MOD_ID, "health_modifier");
     public static final String PLAYER_KEY = Khunegos.BASE_KEY + "_player"; // UUID of player
     public static final int DELAY_BETWEEN_COORDS_COMMAND = 10;
@@ -39,18 +40,18 @@ public class KhunegosPlayer {
      * If not, throw an {@link IllegalStateException}
      */
     @Nullable
-    private KhunegosTask task = null;
+    private Task task = null;
     private boolean connected = false;
     private boolean mustClear = false;
     @Nullable
     private PlayerInventory inv = null;
 
-    public KhunegosPlayer(ServerPlayerEntity player) {
+    public KPlayer(ServerPlayerEntity player) {
         this.player = player;
         this.uuid = player.getUuid();
     }
 
-    public KhunegosPlayer(UUID uuid, PlayerData data) {
+    public KPlayer(UUID uuid, PlayerData data) {
         Khunegos.LOGGER.info("Creating KhunegosPlayer with health modifier");
         this.uuid = uuid;
         this.healthModifier = data.healthModifier;
@@ -75,7 +76,7 @@ public class KhunegosPlayer {
         updateHealth();
     }
 
-    public void assignTask(@NotNull KhunegosTask task) {
+    public void assignTask(@NotNull Task task) {
         this.task = task;
         if (task.hunter == this) role = Role.HUNTER;
         else role = Role.PREY;
@@ -85,10 +86,23 @@ public class KhunegosPlayer {
         if (!success) {
             healthModifier -= 2;
             mustClear = !connected && role == Role.PREY;
+            if (mustClear) {
+                getInventory().dropAll();
+                final var is = KPlayer.Manager.getHeart(this);
+                final var pos = getCoords();
+                final var world = getWorld();
+                final var entity = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is);
+                entity.setPickupDelay(40);
+                world.spawnEntity(entity);
+            }
             if (connected) updateHealth();
         }
         this.task = null;
         role = Role.NONE;
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 
     public void setConnected(boolean connected) {
@@ -109,7 +123,7 @@ public class KhunegosPlayer {
      * @return Current task
      * @throws IllegalStateException if task == null and if {@link Role} is not none
      */
-    public Optional<KhunegosTask> getTask() {
+    public Optional<Task> getTask() {
         if (task == null && role != Role.NONE) throw new IllegalStateException("No task assigned to KhunegosPlayer");
         return task == null ? Optional.empty() : Optional.of(task);
     }
@@ -126,8 +140,8 @@ public class KhunegosPlayer {
         return player.getBlockPos();
     }
 
-    public World getWorld() {
-        return player.getWorld();
+    public ServerWorld getWorld() {
+        return player.getServerWorld();
     }
 
     public String getCoordsString() {
@@ -143,7 +157,7 @@ public class KhunegosPlayer {
         return getName().getString();
     }
 
-    public PlayerInventory getInventory() {
+    private PlayerInventory getInventory() {
         return inv != null ? inv : player.getInventory();
     }
 
@@ -227,19 +241,19 @@ public class KhunegosPlayer {
     }
 
     public static class Manager {
-        private static final Map<UUID, KhunegosPlayer> players = new HashMap<>();
+        private static final Map<UUID, KPlayer> players = new HashMap<>();
 
-        public static KhunegosPlayer getKhunegosPlayer(ServerPlayerEntity player) {
-            return players.computeIfAbsent(player.getUuid(), k -> new KhunegosPlayer(player));
+        public static KPlayer getKhunegosPlayer(ServerPlayerEntity player) {
+            return players.computeIfAbsent(player.getUuid(), k -> new KPlayer(player));
         }
 
         @Nullable
-        public static KhunegosPlayer getKhunegosPlayer(UUID uuid) {
+        public static KPlayer getKhunegosPlayer(UUID uuid) {
             return players.get(uuid);
         }
 
         public static void loadPlayers(StateSaver state) {
-            state.players.forEach((uuid, data) -> players.put(uuid, new KhunegosPlayer(uuid, data)));
+            state.players.forEach((uuid, data) -> players.put(uuid, new KPlayer(uuid, data)));
         }
 
         public static void savePlayers(StateSaver state) {
@@ -255,7 +269,7 @@ public class KhunegosPlayer {
             return is;
         }
 
-        public static ItemStack getHeart(KhunegosPlayer player) {
+        public static ItemStack getHeart(KPlayer player) {
             return getHeart(player.player);
         }
     }

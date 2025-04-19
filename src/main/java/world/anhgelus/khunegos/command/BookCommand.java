@@ -11,7 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
-import static world.anhgelus.khunegos.player.KhunegosPlayer.Manager.getKhunegosPlayer;
+import static world.anhgelus.khunegos.player.KPlayer.Manager.getKhunegosPlayer;
 
 public class BookCommand {
     public static void bootstrap(CommandDispatcher<ServerCommandSource> dispatcher) {
