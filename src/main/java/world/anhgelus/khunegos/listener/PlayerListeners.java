@@ -97,11 +97,12 @@ public class PlayerListeners {
         // now, send FAIL to prevent player to pick armor stand's thing
         // check validity of nether star
         ItemStack is;
-        if (hand == Hand.MAIN_HAND) is = player.getInventory().getMainHandStack();
+        if (hand == Hand.MAIN_HAND) is = player.getMainHandStack();
         else return ActionResult.FAIL;
         if (!is.isOf(Items.NETHER_STAR)) return ActionResult.FAIL; // fail to prevent player to pick armor stand's thing
-        final var nbt = is.get(DataComponentTypes.CUSTOM_DATA);
-        if (nbt == null) return ActionResult.FAIL;
+        final var nbtComponent = is.get(DataComponentTypes.CUSTOM_DATA);
+        if (nbtComponent == null || nbtComponent.isEmpty()) return ActionResult.FAIL;
+        final var nbt = nbtComponent.copyNbt();
         if (!nbt.contains(KPlayer.PLAYER_KEY)) return ActionResult.FAIL;
         player.getInventory().removeOne(is);
         getKhunegosPlayer((ServerPlayerEntity) player).onDeposeHeart();

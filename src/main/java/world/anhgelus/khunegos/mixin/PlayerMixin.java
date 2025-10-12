@@ -12,6 +12,6 @@ public class PlayerMixin {
     @Inject(at = @At("RETURN"), method = "onDisconnect")
     public void disconnect(CallbackInfo ci) {
         final var player = (ServerPlayerEntity) (Object) this;
-        PlayerListeners.disconnect(player.networkHandler, player.getServer());
+        PlayerListeners.disconnect(player.networkHandler, player.getEntityWorld().getServer());
     }
 }

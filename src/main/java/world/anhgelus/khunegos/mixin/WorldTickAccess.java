@@ -90,7 +90,7 @@ public class WorldTickAccess implements TimerAccess, TickAccess {
 
     @Override
     public void tick_remove(Ticker ticker) {
-        tickersToRemove.remove(ticker);
+        tickersToRemove.add(ticker);
     }
 
     @Override

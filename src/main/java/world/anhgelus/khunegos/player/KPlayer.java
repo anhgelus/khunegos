@@ -54,8 +54,8 @@ public class KPlayer {
     public KPlayer(UUID uuid, PlayerData data) {
         Khunegos.LOGGER.info("Creating KhunegosPlayer with health modifier");
         this.uuid = uuid;
-        this.healthModifier = data.healthModifier;
-        this.mustClear = data.mustClear;
+        this.healthModifier = data.healthModifier();
+        this.mustClear = data.mustClear();
     }
 
     public void onDeath(boolean killedByPlayer) {
@@ -141,7 +141,7 @@ public class KPlayer {
     }
 
     public ServerWorld getWorld() {
-        return player.getServerWorld();
+        return player.getEntityWorld();
     }
 
     public String getCoordsString() {
@@ -176,7 +176,7 @@ public class KPlayer {
     public void useCommandCoords() {
         if (!commandCoords) throw new IllegalStateException("Cannot use command coords");
         commandCoords = false;
-        final var timer = TimerAccess.getTimerFromOverworld(player.server);
+        final var timer = TimerAccess.getTimerFromOverworld(player.getEntityWorld().getServer());
         timer.timer_runTask(new TickTask(() -> commandCoords = true, DELAY_BETWEEN_COORDS_COMMAND * 20L));
     }
 
@@ -262,7 +262,7 @@ public class KPlayer {
 
         public static ItemStack getHeart(ServerPlayerEntity player) {
             final var nbt = new NbtCompound();
-            nbt.putUuid(PLAYER_KEY, player.getUuid());
+            nbt.putString(PLAYER_KEY, player.getUuid().toString());
             final var is = new ItemStack(Items.NETHER_STAR);
             is.set(DataComponentTypes.CUSTOM_NAME, player.getName());
             is.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));

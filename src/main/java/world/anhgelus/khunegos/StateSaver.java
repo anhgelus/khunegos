@@ -1,11 +1,12 @@
 package world.anhgelus.khunegos;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateType;
 import world.anhgelus.khunegos.player.PlayerData;
 
 import java.util.*;
@@ -13,31 +14,30 @@ import java.util.*;
 public class StateSaver extends PersistentState {
     public static final String PLAYERS_KEY = "players";
     public static final String ARMOR_STANDS_KEY = "armor_stands";
-    private static final Type<StateSaver> type = new Type<>(
-            StateSaver::new,
-            StateSaver::createFromNbt,
-            null
+    public static final Codec<StateSaver> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.unboundedMap(Codec.STRING, PlayerData.CODEC).fieldOf(PLAYERS_KEY).forGetter(StateSaver::getPlayers),
+            BlockPos.CODEC.listOf().fieldOf(ARMOR_STANDS_KEY).forGetter(StateSaver::getArmorStandsToSpawn)
+    ).apply(i, StateSaver::new));
+    private static final PersistentStateType<StateSaver> type = new PersistentStateType<>(
+            Khunegos.MOD_ID, StateSaver::new, CODEC, null
     );
+
     public Map<UUID, PlayerData> players = new HashMap<>();
     public Set<BlockPos> armorStandsToSpawn = new HashSet<>();
 
-    public static StateSaver createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        final var state = new StateSaver();
+    public StateSaver(Map<String, PlayerData> players, List<BlockPos> armorStandsToSpawn) {
+        players.forEach((s, playerData) -> this.players.put(UUID.fromString(s), playerData));
+        this.armorStandsToSpawn.addAll(armorStandsToSpawn);
+    }
 
-        final var playersNbt = tag.getCompound(PLAYERS_KEY);
-        playersNbt.getKeys().forEach(key -> state.players.put(UUID.fromString(key), PlayerData.from(playersNbt.getCompound(key))));
-
-        final var armorStandsNbt = tag.getCompound(ARMOR_STANDS_KEY);
-        armorStandsNbt.getKeys().forEach(key -> state.armorStandsToSpawn.add(BlockPos.fromLong(armorStandsNbt.getLong(key))));
-
-        return state;
+    public StateSaver() {
     }
 
     public static StateSaver getServerState(MinecraftServer server) {
         final var world = server.getOverworld();
         final var persistentStateManager = world.getPersistentStateManager();
 
-        final var state = persistentStateManager.getOrCreate(type, Khunegos.MOD_ID);
+        final var state = persistentStateManager.getOrCreate(type);
 
         state.markDirty();
 
@@ -45,7 +45,7 @@ public class StateSaver extends PersistentState {
     }
 
     public static PlayerData getPlayerState(ServerPlayerEntity player) {
-        return getPlayerState(player.server, player.getUuid());
+        return getPlayerState(player.getEntityWorld().getServer(), player.getUuid());
     }
 
     public static PlayerData getPlayerState(MinecraftServer server, UUID uuid) {
@@ -53,17 +53,16 @@ public class StateSaver extends PersistentState {
         return state.players.computeIfAbsent(uuid, u -> PlayerData.DEFAULT);
     }
 
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        final var playersNbt = new NbtCompound();
-        players.forEach((uuid, d) -> playersNbt.put(uuid.toString(), d.save()));
-        nbt.put(PLAYERS_KEY, playersNbt);
+    public Map<String, PlayerData> getPlayers() {
+        final var np = new HashMap<String, PlayerData>();
+        players.forEach((uuid, d) -> {
+            np.put(uuid.toString(), d);
+        });
+        return np;
+    }
 
-        final var armorStandsNbt = new NbtCompound();
-        armorStandsToSpawn.forEach((pos) -> armorStandsNbt.putLong(pos.toShortString(), pos.asLong()));
-        nbt.put(ARMOR_STANDS_KEY, armorStandsNbt);
-
-        return nbt;
+    public List<BlockPos> getArmorStandsToSpawn() {
+        return new ArrayList<>(armorStandsToSpawn);
     }
 }
 

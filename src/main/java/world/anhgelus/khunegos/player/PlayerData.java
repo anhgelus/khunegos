@@ -1,46 +1,27 @@
 package world.anhgelus.khunegos.player;
 
-import net.minecraft.nbt.NbtCompound;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import org.jetbrains.annotations.NotNull;
 
-public class PlayerData {
+public record PlayerData(float healthModifier, boolean mustClear) {
     public static final String HEALTH_MODIFIER_KEY = "health_modifier";
     public static final String MUST_CLEAR_KEY = "must_clear";
     public static final PlayerData DEFAULT;
+    public static final Codec<PlayerData> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.FLOAT.fieldOf(HEALTH_MODIFIER_KEY).forGetter(PlayerData::healthModifier),
+            Codec.BOOL.fieldOf(MUST_CLEAR_KEY).forGetter(PlayerData::mustClear)
+    ).apply(i, PlayerData::new));
 
     static {
-        DEFAULT = new PlayerData();
-        DEFAULT.mustClear = false;
-        DEFAULT.healthModifier = 0;
-    }
-
-    public float healthModifier = 0;
-    public boolean mustClear = false;
-
-    public static PlayerData from(NbtCompound nbt) {
-        final var data = new PlayerData();
-        data.healthModifier = nbt.getFloat(HEALTH_MODIFIER_KEY);
-        data.mustClear = nbt.getBoolean(MUST_CLEAR_KEY);
-        return data;
+        DEFAULT = new PlayerData(0, false);
     }
 
     public static PlayerData from(KPlayer player) {
-        final var data = new PlayerData();
-        data.healthModifier = player.getHealthModifier();
-        data.mustClear = player.isMustClear();
-        return data;
+        return new PlayerData(player.getHealthModifier(), player.isMustClear());
     }
 
-    public NbtCompound save(NbtCompound nbt) {
-        nbt.putFloat(HEALTH_MODIFIER_KEY, healthModifier);
-        nbt.putBoolean(MUST_CLEAR_KEY, mustClear);
-        return nbt;
-    }
-
-    public NbtCompound save() {
-        return save(new NbtCompound());
-    }
-
-    public String toString() {
+    public @NotNull String toString() {
         return String.format("PlayerData{health modifier=%s, must clear=%s}", healthModifier, mustClear);
     }
 }
